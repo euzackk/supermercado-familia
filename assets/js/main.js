@@ -751,7 +751,7 @@ function updateOrderReview() {
     document.getElementById('review-total').textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
 }
 
-// Finalizar pedido - REDIRECIONAMENTO DIRETO
+// Finalizar pedido - REDIRECIONAMENTO DIRETO PARA WHATSAPP (mesma janela)
 function finalizeOrder() {
     // Validar dados
     if (cart.length === 0) {
@@ -778,20 +778,43 @@ function finalizeOrder() {
     
     // Simular processamento
     setTimeout(() => {
-        const phoneNumber = '5569992557719';
+        // Gerar mensagem do WhatsApp
         const message = generateWhatsAppMessage();
-        const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
         
-        // REDIRECIONAMENTO DIRETO - mesma janela
+        // Para mobile: usa o link do WhatsApp com o protocolo whatsapp://
+        // Para desktop: usa o link web.whatsapp.com
+        const phoneNumber = '5569992557719'; // Número no formato internacional sem o +
+        
+        // Detecta se é um dispositivo móvel
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        let whatsappURL;
+        
+        if (isMobile) {
+            // Para dispositivos móveis - abre diretamente no app
+            whatsappURL = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+        } else {
+            // Para desktop - abre no WhatsApp Web
+            whatsappURL = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+        }
+        
+        // Tenta abrir o WhatsApp
         window.location.href = whatsappURL;
         
-        // Não precisamos restaurar o botão porque vamos sair da página
-        // Mas mantemos o código caso o redirecionamento falhe
+        // Fallback: se não abrir em alguns segundos, tenta com o link padrão
+        setTimeout(() => {
+            // Se ainda estiver na mesma página após 2 segundos, tenta com o link web.whatsapp.com
+            if (window.location.href.indexOf('whatsapp') === -1) {
+                window.location.href = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+            }
+        }, 2000);
+        
+        // Restaurar botão após algum tempo (caso o redirecionamento falhe)
         setTimeout(() => {
             finalBtn.disabled = false;
             finalBtn.setAttribute('aria-disabled', 'false');
             finalBtn.innerHTML = originalText;
-        }, 3000);
+        }, 5000);
         
     }, 1500);
 }
