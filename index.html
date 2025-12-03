@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supermercado Família - Entrega Rápida em Porto Velho</title>
+    <meta name="description" content="Supermercado Família - Seu mercado de confiança em Porto Velho/RO. Entregamos em toda a cidade com qualidade e preços baixos.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-top">
+            <div class="container">
+                <div class="header-top-left">
+                    <span><i class="fas fa-clock"></i> Seg-Sáb: 6h-20h | Dom: 6h-12h</span>
+                    <span><i class="fas fa-map-marker-alt"></i> Porto Velho/RO</span>
+                </div>
+                <div class="header-top-right">
+                    <span>Siga-nos:</span>
+                    <div class="social-icons">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" id="whatsapp-link" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="header-main">
+            <div class="container header-content">
+               <a href="#" class="logo" aria-label="Supermercado Família">
+                    <div class="logo-icon">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>Supermercado Família</h1>
+                        <p>Seu mercado de confiança em Porto Velho</p>
+                    </div>
+                </a>
+                
+                <div class="header-actions">
+                    <div class="contact-info">
+                        <span class="phone-number"><i class="fas fa-phone"></i> (69) 99255-7719</span>
+                        <a href="#" class="whatsapp-btn" id="whatsapp-btn-header" aria-label="Fazer pedido pelo WhatsApp">
+                            <i class="fab fa-whatsapp"></i> Fazer pedido
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Delivery Banner -->
+    <section class="delivery-banner" aria-label="Informações de entrega">
+        <div class="container">
+            <div class="delivery-banner-item">
+                <i class="fas fa-truck" aria-hidden="true"></i>
+                <div>
+                    <strong>Entregamos em toda Porto Velho</strong>
+                    <div>Zona Sul: Entrega GRÁTIS</div>
+                </div>
+            </div>
+            <div class="delivery-banner-item">
+                <i class="fas fa-clock" aria-hidden="true"></i>
+                <div>
+                    <strong>Entregas de segunda a sábado</strong>
+                    <div>Até 20h</div>
+                </div>
+            </div>
+            <div class="delivery-banner-item">
+                <i class="fas fa-calendar-day" aria-hidden="true"></i>
+                <div>
+                    <strong>Entregas aos domingos</strong>
+                    <div>Das 8h às 12h</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Progress Indicator -->
+    <div class="container">
+        <div class="progress-indicator">
+            <div class="progress-line" aria-hidden="true"></div>
+            <div class="progress-line-fill" id="progress-line-fill" aria-hidden="true"></div>
+            
+            <div class="progress-step active" data-step="1">
+                <div class="step-circle" onclick="goToStep(1)" role="button" tabindex="0" aria-label="Passo 1: Escolha os produtos">1</div>
+                <div class="step-label">Escolha os produtos</div>
+            </div>
+            
+            <div class="progress-step" data-step="2">
+                <div class="step-circle" onclick="goToStep(2)" role="button" tabindex="0" aria-label="Passo 2: Preencha seus dados">2</div>
+                <div class="step-label">Preencha seus dados</div>
+            </div>
+            
+            <div class="progress-step" data-step="3">
+                <div class="step-circle" onclick="goToStep(3)" role="button" tabindex="0" aria-label="Passo 3: Finalize o pedido">3</div>
+                <div class="step-label">Finalize o pedido</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Botão para abrir carrinho -->
+    <div class="open-cart-btn" id="open-cart-btn" aria-label="Abrir carrinho de compras" role="button" tabindex="0">
+        <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+        <span class="cart-count-badge" id="cart-count-badge" aria-live="polite">0</span>
+    </div>
+    
+    <!-- Botão voltar ao topo -->
+    <div class="back-to-top" id="back-to-top" aria-label="Voltar ao topo" role="button" tabindex="0">
+        <i class="fas fa-arrow-up" aria-hidden="true"></i>
+    </div>
+    
+    <!-- Carrinho Flutuante -->
+    <div class="floating-cart" id="floating-cart" aria-label="Carrinho de compras" role="dialog" aria-modal="true">
+        <div class="floating-cart-header">
+            <h3><i class="fas fa-shopping-cart" aria-hidden="true"></i> Seu Carrinho</h3>
+            <button class="close-cart-btn" id="close-cart-btn" aria-label="Fechar carrinho">&times;</button>
+        </div>
+        <div class="floating-cart-body" id="floating-cart-body">
+            <!-- Itens do carrinho serão inseridos aqui via JavaScript -->
+        </div>
+        <div class="floating-cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="floating-cart-total" aria-live="polite">R$ 0,00</span>
+            </div>
+            <button class="view-cart-btn" id="view-cart-btn" onclick="goToStep(2)">
+                <i class="fas fa-check" aria-hidden="true"></i> Finalizar Compra
+            </button>
+            <button class="clear-cart-btn" id="clear-cart-btn" aria-label="Limpar carrinho">
+                <i class="fas fa-trash" aria-hidden="true"></i> Limpar Carrinho
+            </button>
+        </div>
+    </div>
+    
+    <!-- Overlay para carrinho aberto -->
+    <div class="cart-overlay" id="cart-overlay" role="button" tabindex="-1" aria-label="Fechar carrinho"></div>
+    
+    <!-- Steps Container -->
+    <div class="container steps-container">
+        <!-- STEP 1: Escolha os produtos -->
+        <div class="step active" id="step-1" role="tabpanel" aria-labelledby="step1-tab">
+            <div class="step-header">
+                <h2><i class="fas fa-shopping-cart" aria-hidden="true"></i> Escolha seus produtos</h2>
+                <p>Selecione os itens que deseja comprar</p>
+            </div>
+            
+            <div class="products-controls">
+                <div class="search-box">
+                    <i class="fas fa-search" aria-hidden="true"></i>
+                    <input type="text" id="product-search" placeholder="O que você está procurando hoje?" aria-label="Buscar produtos">
+                </div>
+                <div class="category-filters">
+                    <button class="category-filter active" data-category="all" aria-label="Mostrar todos os produtos">
+                        <i class="fas fa-th-large" aria-hidden="true"></i> Todos
+                    </button>
+                    <button class="category-filter" data-category="alimentos" aria-label="Filtrar por alimentos">
+                        <i class="fas fa-utensils" aria-hidden="true"></i> Alimentos
+                    </button>
+                    <button class="category-filter" data-category="carnes" aria-label="Filtrar por carnes">
+                        <i class="fas fa-drumstick-bite" aria-hidden="true"></i> Carnes
+                    </button>
+                    <button class="category-filter" data-category="limpeza" aria-label="Filtrar por produtos de limpeza">
+                        <i class="fas fa-spray-can" aria-hidden="true"></i> Limpeza
+                    </button>
+                    <button class="category-filter" data-category="biscoitos" aria-label="Filtrar por biscoitos">
+                        <i class="fas fa-cookie-bite" aria-hidden="true"></i> Biscoitos
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Category 1 -->
+            <div class="category" data-category="alimentos">
+                <div class="category-header">
+                    <i class="fas fa-utensils" aria-hidden="true"></i>
+                    <h3>Alimentos Básicos</h3>
+                </div>
+                <div class="products-list">
+                    <div class="product-item">
+                        <div class="product-info">
+                            <h4>Açúcar Mascavo Unão 1kg</h4>
+                            <div class="product-description">Açúcar mascavo puro, ideal para preparos saudáveis</div>
+                            <div class="price-container">
+                                <span class="current-price">R$ 22,49</span>
+                            </div>
+                        </div>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn minus" data-id="1" aria-label="Diminuir quantidade">-</button>
+                            <span class="quantity" data-id="1" aria-live="polite">0</span>
+                            <button class="quantity-btn plus" data-id="1" aria-label="Aumentar quantidade">+</button>
+                            <button class="add-to-cart-btn" data-id="1" data-name="Açúcar Mascavo Unão 1kg" data-price="22.49" aria-label="Adicionar Açúcar Mascavo Unão 1kg ao carrinho">
+                                <i class="fas fa-cart-plus" aria-hidden="true"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="product-item">
+                        <div class="product-info">
+                            <h4>Arroz Camil Tipo 1 1kg</h4>
+                            <div class="product-description">Arroz de alta qualidade, grãos selecionados</div>
+                            <div class="price-container">
+                                <span class="current-price">R$ 3,85</span>
+                            </div>
+                        </div>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn minus" data-id="2" aria-label="Diminuir quantidade">-</button>
+                            <span class="quantity" data-id="2" aria-live="polite">0</span>
+                            <button class="quantity-btn plus" data-id="2" aria-label="Aumentar quantidade">+</button>
+                            <button class="add-to-cart-btn" data-id="2" data-name="Arroz Camil Tipo 1 1kg" data-price="3.85" aria-label="Adicionar Arroz Camil Tipo 1 1kg ao carrinho">
+                                <i class="fas fa-cart-plus" aria-hidden="true"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="product-item">
+                        <div class="product-info">
+                            <h4>Feijão Carioca Brasileirinho 1kg</h4>
+                            <div class="product-description">Feijão carioca de primeira qualidade</div>
+                            <div class="price-container">
+                                <span class="current-price">R$ 4,50</span>
+                            </div>
+                        </div>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn minus" data-id="3" aria-label="Diminuir quantidade">-</button>
+                            <span class="quantity" data-id="3" aria-live="polite">0</span>
+                            <button class="quantity-btn plus" data-id="3" aria-label="Aumentar quantidade">+</button>
+                            <button class="add-to-cart-btn" data-id="3" data-name="Feijão Carioca Brasileirinho 1kg" data-price="4.50" aria-label="Adicionar Feijão Carioca Brasileirinho 1kg ao carrinho">
+                                <i class="fas fa-cart-plus" aria-hidden="true"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="product-item">
+                        <div class="product-info">
+                            <h4>Farinha de Mandioca Soberano 1kg</h4>
+                            <div class="product-description">Farinha de mandioca fina, tradicional</div>
+                            <div class="price-container">
+                                <span class="current-price">R$ 4,40</span>
+                            </div>
+                        </div>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn minus" data-id="4" aria-label="Diminuir quantidade">-</button>
+                            <span class="quantity" data-id="4" aria-live="polite">0</span>
+                            <button class="quantity-btn plus" data-id="4" aria-label="Aumentar quantidade">+</button>
+                            <button class="add-to-cart-btn" data-id="4" data-name="Farinha de Mandioca Soberano 1kg" data-price="4.40" aria-label="Adicionar Farinha de Mandioca Soberano 1kg ao carrinho">
+                                <i class="fas fa-cart-plus" aria-hidden="true"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Category 2 -->
+            <div class="category" data-category="carnes">
+                <div class="category-header">
+                    <i class="fas fa-drumstick-bite" aria-hidden="true"></i>
+                    <h3>Carnes e Enlatados</h3>
+                </div>
+                <div class="products-list">
+                    <div class="product-item">
+                        <div class="product-info">
+                            <h4>Atum Gomes Ralado Natural 170g</h4>
+                            <div class="product-description">Atum ralado natural, rico em proteínas</div>
+                            <div class="price-container">
+                                <span class="current-price">R$ 5,90</span>
+                            </div>
+                        </div>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn minus" data-id="5" aria-label="Diminuir quantidade">-</button>
+                            <span class="quantity" data-id="5" aria-live="polite">0</span>
+                            <button class="quantity-btn plus" data-id="5" aria-label="Aumentar quantidade">+</button>
+                            <button class="add-to-cart-btn" data-id="5" data-name="Atum Gomes Ralado Natural 170g" data-price="5.90" aria-label="Adicionar Atum Gomes Ralado Natural 170g ao carrinho">
+                                <i class="fas fa-cart-plus" aria-hidden="true"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="product-item">
+                        <div class="product-info">
+                            <h4>Carne Mista Desfiar Target 320g</h4>
+                            <div class="product-description">Carne mista desfiada, pronta para consumo</div>
+                            <div class="price-container">
+                                <span class="current-price">R$ 8,68</span>
+                            </div>
+                        </div>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn minus" data-id="6" aria-label="Diminuir quantidade">-</button>
+                            <span class="quantity" data-id="6" aria-live="polite">0</span>
+                            <button class="quantity-btn plus" data-id="6" aria-label="Aumentar quantidade">+</button>
+                            <button class="add-to-cart-btn" data-id="6" data-name="Carne Mista Desfiar Target 320g" data-price="8.68" aria-label="Adicionar Carne Mista Desfiar Target 320g ao carrinho">
+                                <i class="fas fa-cart-plus" aria-hidden="true"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="product-item">
+                        <div class="product-info">
+                            <h4>Almôndegas ao Molho Target 420g</h4>
+                            <div class="product-description">Almôndegas ao molho, perfeito para jantares</div>
+                            <div class="price-container">
+                                <span class="current-price">R$ 8,70</span>
+                            </div>
+                        </div>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn minus" data-id="7" aria-label="Diminuir quantidade">-</button>
+                            <span class="quantity" data-id="7" aria-live="polite">0</span>
+                            <button class="quantity-btn plus" data-id="7" aria-label="Aumentar quantidade">+</button>
+                            <button class="add-to-cart-btn" data-id="7" data-name="Almôndegas ao Molho Target 420g" data-price="8.70" aria-label="Adicionar Almôndegas ao Molho Target 420g ao carrinho">
+                                <i class="fas fa-cart-plus" aria-hidden="true"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Category 3 -->
+            <div class="category" data-category="limpeza">
+                <div class="category-header">
+                    <i class="fas fa-spray-can" aria-hidden="true"></i>
+                    <h3>Produtos de Limpeza</h3>
+                </div>
+                <div class="products-list">
+                    <div class="product-item">
+                        <div class="product-info">
+                            <h4>Água Sanitária OBOA 2L</h4>
+                            <div class="product-description">Água sanitária com alta eficiência bactericida</div>
+                            <div class="price-container">
+                                <span class="current-price">R$ 5,99</span>
+                            </div>
+                        </div>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn minus" data-id="8" aria-label="Diminuir quantidade">-</button>
+                            <span class="quantity" data-id="8" aria-live="polite">0</span>
+                            <button class="quantity-btn plus" data-id="8" aria-label="Aumentar quantidade">+</button>
+                            <button class="add-to-cart-btn" data-id="8" data-name="Água Sanitária OBOA 2L" data-price="5.99" aria-label="Adicionar Água Sanitária OBOA 2L ao carrinho">
+                                <i class="fas fa-cart-plus" aria-hidden="true"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="product-item">
+                        <div class="product-info">
+                            <h4>Amaciante Ypê Aconchego 2L</h4>
+                            <div class="product-description">Amaciante com fragrância suave e duradoura</div>
+                            <div class="price-container">
+                                <span class="current-price">R$ 7,70</span>
+                            </div>
+                        </div>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn minus" data-id="9" aria-label="Diminuir quantidade">-</button>
+                            <span class="quantity" data-id="9" aria-live="polite">0</span>
+                            <button class="quantity-btn plus" data-id="9" aria-label="Aumentar quantidade">+</button>
+                            <button class="add-to-cart-btn" data-id="9" data-name="Amaciante Ypê Aconchego 2L" data-price="7.70" aria-label="Adicionar Amaciante Ypê Aconchego 2L ao carrinho">
+                                <i class="fas fa-cart-plus" aria-hidden="true"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Category 4 -->
+            <div class="category" data-category="biscoitos">
+                <div class="category-header">
+                    <i class="fas fa-cookie-bite" aria-hidden="true"></i>
+                    <h3>Biscoitos e Salgadinhos</h3>
+                </div>
+                <div class="products-list">
+                    <div class="product-item">
+                        <div class="product-info">
+                            <h4>Biscoito Cream Cracker Marilan 350g</h4>
+                            <div class="product-description">Biscoito cream cracker tradicional, leve e crocante</div>
+                            <div class="price-container">
+                                <span class="current-price">R$ 4,99</span>
+                            </div>
+                        </div>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn minus" data-id="10" aria-label="Diminuir quantidade">-</button>
+                            <span class="quantity" data-id="10" aria-live="polite">0</span>
+                            <button class="quantity-btn plus" data-id="10" aria-label="Aumentar quantidade">+</button>
+                            <button class="add-to-cart-btn" data-id="10" data-name="Biscoito Cream Cracker Marilan 350g" data-price="4.99" aria-label="Adicionar Biscoito Cream Cracker Marilan 350g ao carrinho">
+                                <i class="fas fa-cart-plus" aria-hidden="true"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="product-item">
+                        <div class="product-info">
+                            <h4>Biscoito Recheado Bauducco 140g</h4>
+                            <div class="product-description">Biscoito recheado com chocolate, delicioso</div>
+                            <div class="price-container">
+                                <span class="current-price">R$ 1,70</span>
+                            </div>
+                        </div>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn minus" data-id="11" aria-label="Diminuir quantidade">-</button>
+                            <span class="quantity" data-id="11" aria-live="polite">0</span>
+                            <button class="quantity-btn plus" data-id="11" aria-label="Aumentar quantidade">+</button>
+                            <button class="add-to-cart-btn" data-id="11" data-name="Biscoito Recheado Bauducco 140g" data-price="1.70" aria-label="Adicionar Biscoito Recheado Bauducco 140g ao carrinho">
+                                <i class="fas fa-cart-plus" aria-hidden="true"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Cart Summary Step 1 -->
+            <div class="cart-summary-step1">
+                <div class="cart-info">
+                    <div class="cart-icon">
+                        <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                    </div>
+                    <div class="cart-text">
+                        <h4 id="cart-count-step1" aria-live="polite">0 itens no carrinho</h4>
+                        <p id="cart-total-step1" aria-live="polite">Total: R$ 0,00</p>
+                    </div>
+                </div>
+                <button class="nav-btn next" id="next-to-step2" aria-label="Continuar para o próximo passo">
+                    Continuar <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- STEP 2: Preencha seus dados -->
+        <div class="step" id="step-2" role="tabpanel" aria-labelledby="step2-tab" hidden>
+            <div class="step-header">
+                <h2><i class="fas fa-user" aria-hidden="true"></i> Preencha seus dados</h2>
+                <p>Informe seus dados para entrega</p>
+            </div>
+            
+            <div class="customer-form-container">
+                <div class="form-group required">
+                    <label for="customer-name">Nome completo</label>
+                    <input type="text" id="customer-name" class="form-control" placeholder="Digite seu nome completo" required aria-required="true">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group required">
+                            <label for="customer-phone">Telefone</label>
+                            <input type="tel" id="customer-phone" class="form-control" placeholder="(69) 99999-9999" required aria-required="true">
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group required">
+                            <label for="customer-address">Endereço completo</label>
+                            <input type="text" id="customer-address" class="form-control" placeholder="Rua, número, bairro" required aria-required="true">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="customer-complement">Complemento (opcional)</label>
+                    <input type="text" id="customer-complement" class="form-control" placeholder="Apartamento, bloco, referência">
+                </div>
+                
+                <div class="form-group required">
+                    <label>Forma de pagamento</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="payment-pix" name="payment" value="PIX" checked aria-checked="true">
+                            <label for="payment-pix">PIX</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="payment-credit" name="payment" value="Cartão de Crédito">
+                            <label for="payment-credit">Cartão de Crédito</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="payment-debit" name="payment" value="Cartão de Débito">
+                            <label for="payment-debit">Cartão de Débito</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="payment-food-card" name="payment" value="Cartão Auxílio Alimentação">
+                            <label for="payment-food-card">Cartão Auxílio Alimentação</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="payment-money" name="payment" value="Dinheiro">
+                            <label for="payment-money">Dinheiro</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="delivery-zone-step2">
+                <h3><i class="fas fa-map-marker-alt" aria-hidden="true"></i> Selecione sua zona de entrega:</h3>
+                <div class="zone-options">
+                    <div class="zone-option free" data-zone="sul" data-fee="0" role="button" tabindex="0" aria-label="Zona Sul - Entrega grátis">
+                        Zona Sul <br><small><strong>GRÁTIS</strong></small>
+                    </div>
+                    <div class="zone-option" data-zone="centro" data-fee="5" role="button" tabindex="0" aria-label="Centro - Taxa R$ 5,00">
+                        Centro <br><small>Taxa: R$ 5,00</small>
+                    </div>
+                    <div class="zone-option" data-zone="leste" data-fee="8" role="button" tabindex="0" aria-label="Zona Leste - Taxa R$ 8,00">
+                        Zona Leste <br><small>Taxa: R$ 8,00</small>
+                    </div>
+                    <div class="zone-option" data-zone="oeste" data-fee="8" role="button" tabindex="0" aria-label="Zona Oeste - Taxa R$ 8,00">
+                        Zona Oeste <br><small>Taxa: R$ 8,00</small>
+                    </div>
+                    <div class="zone-option" data-zone="norte" data-fee="10" role="button" tabindex="0" aria-label="Zona Norte - Taxa R$ 10,00">
+                        Zona Norte <br><small>Taxa: R$ 10,00</small>
+                    </div>
+                </div>
+                <p style="margin-top: 15px; font-size: 0.9rem; color: var(--gray); text-align: center;">
+                    <i class="fas fa-info-circle" aria-hidden="true"></i> Entregas de segunda a sábado até 20h | Domingo: 8h às 12h
+                </p>
+            </div>
+            
+            <div class="step-navigation">
+                <button class="nav-btn prev" onclick="goToStep(1)" aria-label="Voltar para produtos">
+                    <i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar
+                </button>
+                <button class="nav-btn next" id="next-to-step3" aria-label="Continuar para revisão do pedido">
+                    Continuar <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- STEP 3: Finalize o pedido -->
+        <div class="step" id="step-3" role="tabpanel" aria-labelledby="step3-tab" hidden>
+            <div class="step-header">
+                <h2><i class="fas fa-check-circle" aria-hidden="true"></i> Revise seu pedido</h2>
+                <p>Confirme todas as informações antes de finalizar</p>
+            </div>
+            
+            <div class="order-review-container">
+                <!-- Products Review -->
+                <div class="review-section">
+                    <h3><i class="fas fa-shopping-cart" aria-hidden="true"></i> Itens do pedido</h3>
+                    <div id="review-products-list" aria-live="polite">
+                        <!-- Produtos serão inseridos aqui via JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Customer Info Review -->
+                <div class="review-section">
+                    <h3><i class="fas fa-user" aria-hidden="true"></i> Dados para entrega</h3>
+                    <div class="customer-info-review">
+                        <div class="info-item">
+                            <label>Nome</label>
+                            <p id="review-name">-</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Telefone</label>
+                            <p id="review-phone">-</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Endereço</label>
+                            <p id="review-address">-</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Complemento</label>
+                            <p id="review-complement">-</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Forma de pagamento</label>
+                            <p id="review-payment">-</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Zona de entrega</label>
+                            <p id="review-zone">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Order Summary -->
+                <div class="review-section">
+                    <h3><i class="fas fa-receipt" aria-hidden="true"></i> Resumo do pedido</h3>
+                    <div class="order-summary-review">
+                        <div class="summary-row">
+                            <span>Subtotal:</span>
+                            <span id="review-subtotal">R$ 0,00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Taxa de entrega:</span>
+                            <span id="review-delivery-fee">R$ 0,00</span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>TOTAL:</span>
+                            <span id="review-total">R$ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Final Button -->
+                <div style="text-align: center;">
+                    <button class="nav-btn final" id="finalize-order" aria-label="Finalizar pedido no WhatsApp">
+                        <i class="fab fa-whatsapp" aria-hidden="true"></i> FINALIZAR PEDIDO NO WHATSAPP
+                    </button>
+                </div>
+                
+                <div class="step-navigation">
+                    <button class="nav-btn prev" onclick="goToStep(2)" aria-label="Voltar para dados de entrega">
+                        <i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar
+                    </button>
+                    <button class="nav-btn next" onclick="goToStep(1)" aria-label="Voltar para alterar produtos">
+                        <i class="fas fa-shopping-cart" aria-hidden="true"></i> Alterar produtos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><i class="fas fa-store" aria-hidden="true"></i> Supermercado Família</h3>
+                    <p style="color: #ddd; margin-bottom: 15px;">Seu mercado de confiança em Porto Velho. Qualidade, preço justo e entrega rápida.</p>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt" aria-hidden="true"></i> RUA PRINCIPAL, 1675 A - NOVO HORIZONTE</li>
+                        <li><i class="fas fa-city" aria-hidden="true"></i> Porto Velho - RO</li>
+                        <li><i class="fas fa-id-card" aria-hidden="true"></i> CNPJ: 08820217000150</li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3><i class="fas fa-clock" aria-hidden="true"></i> Horário de Funcionamento</h3>
+                    <ul>
+                        <li><i class="fas fa-calendar-day" aria-hidden="true"></i> Segunda a Sábado: 6h às 20h</li>
+                        <li><i class="fas fa-calendar-day" aria-hidden="true"></i> Domingo: 6h às 12h</li>
+                        <li><i class="fas fa-truck" aria-hidden="true"></i> Entregas seg a sáb: até 20h</li>
+                        <li><i class="fas fa-truck" aria-hidden="true"></i> Entregas domingo: 8h às 12h</li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3><i class="fas fa-credit-card" aria-hidden="true"></i> Formas de Pagamento</h3>
+                    <div class="payment-methods">
+                        <div class="payment-method">PIX</div>
+                        <div class="payment-method">Cartão de Crédito</div>
+                        <div class="payment-method">Cartão de Débito</div>
+                        <div class="payment-method">Dinheiro</div>
+                        <div class="payment-method">Vale Alimentação</div>
+                        <div class="payment-method">Vale Refeição</div>
+                        <div class="payment-method">Cartão Auxílio</div>
+                    </div>
+                    <h3 style="margin-top: 20px;"><i class="fas fa-headset" aria-hidden="true"></i> Contato</h3>
+                    <ul>
+                        <li><i class="fas fa-phone" aria-hidden="true"></i> (69) 99255-7719</li>
+                        <li><i class="fas fa-envelope" aria-hidden="true"></i> dafamiliasuper@gmail.com</li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3><i class="fas fa-info-circle" aria-hidden="true"></i> Informações</h3>
+                    <ul>
+                        <li><a href="#"><i class="fas fa-chevron-right" aria-hidden="true"></i> Sobre nós</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right" aria-hidden="true"></i> Política de entrega</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right" aria-hidden="true"></i> Política de privacidade</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right" aria-hidden="true"></i> Termos de uso</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right" aria-hidden="true"></i> Trabalhe conosco</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2025 Supermercado Família LTDA. Todos os direitos reservados.</p>
+                <p>Preços sujeitos a alteração sem aviso prévio. Estoque limitado.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Toast de notificação -->
+    <div class="notification-toast" id="notification-toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <i class="fas fa-check-circle" aria-hidden="true"></i>
+        <span id="toast-message">Produto adicionado ao carrinho!</span>
+    </div>
+    
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
