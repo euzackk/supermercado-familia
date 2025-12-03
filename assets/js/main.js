@@ -135,11 +135,22 @@ function setupEventListeners() {
     
     document.getElementById('finalize-order').addEventListener('click', finalizeOrder);
     
-    // Inputs de dados do cliente
-    document.getElementById('customer-name').addEventListener('input', saveCustomerData);
-    document.getElementById('customer-phone').addEventListener('input', saveCustomerData);
-    document.getElementById('customer-address').addEventListener('input', saveCustomerData);
-    document.getElementById('customer-complement').addEventListener('input', saveCustomerData);
+    // Inputs de dados do cliente - COM VALIDAÇÃO EM TEMPO REAL
+    document.getElementById('customer-name').addEventListener('input', function() {
+        saveCustomerData();
+        updateStepButtons(); // Atualiza o botão em tempo real
+    });
+    document.getElementById('customer-phone').addEventListener('input', function() {
+        saveCustomerData();
+        updateStepButtons(); // Atualiza o botão em tempo real
+    });
+    document.getElementById('customer-address').addEventListener('input', function() {
+        saveCustomerData();
+        updateStepButtons(); // Atualiza o botão em tempo real
+    });
+    document.getElementById('customer-complement').addEventListener('input', function() {
+        saveCustomerData();
+    });
     document.querySelectorAll('input[name="payment"]').forEach(radio => {
         radio.addEventListener('change', saveCustomerData);
     });
@@ -566,6 +577,16 @@ function goToStep(stepNumber) {
         // Animar entrada do próximo passo
         nextStepElement.classList.add('active');
         
+        // Se for o passo 2, verificar se há dados salvos e habilitar botão
+        if (stepNumber === 2) {
+            // Verificar se há dados salvos e habilitar botão
+            const hasData = customerData.name && customerData.phone && customerData.address;
+            if (hasData) {
+                // Habilita o botão imediatamente se já houver dados
+                updateStepButtons();
+            }
+        }
+        
         // Se for o passo 3, atualizar a revisão
         if (stepNumber === 3) {
             updateOrderReview();
@@ -629,6 +650,18 @@ function updateStepButtons() {
     nextToStep3.disabled = !isValid;
     nextToStep3.setAttribute('aria-disabled', !isValid);
     nextToStep3.style.opacity = isValid ? '1' : '0.6';
+    
+    // Se o passo 2 estiver ativo, também validar o botão com base nos campos atuais
+    if (currentStep === 2) {
+        const name = document.getElementById('customer-name').value.trim();
+        const phone = document.getElementById('customer-phone').value.trim();
+        const address = document.getElementById('customer-address').value.trim();
+        
+        const currentIsValid = name && phone && address;
+        nextToStep3.disabled = !currentIsValid;
+        nextToStep3.setAttribute('aria-disabled', !currentIsValid);
+        nextToStep3.style.opacity = currentIsValid ? '1' : '0.6';
+    }
 }
 
 // Validar passo 2
@@ -718,7 +751,7 @@ function updateOrderReview() {
     document.getElementById('review-total').textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
 }
 
-// Finalizar pedido
+// Finalizar pedido - REDIRECIONAMENTO DIRETO
 function finalizeOrder() {
     // Validar dados
     if (cart.length === 0) {
@@ -749,28 +782,16 @@ function finalizeOrder() {
         const message = generateWhatsAppMessage();
         const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
         
-        // Abrir WhatsApp em nova aba
-        window.open(whatsappURL, '_blank');
+        // REDIRECIONAMENTO DIRETO - mesma janela
+        window.location.href = whatsappURL;
         
-        // Restaurar botão
-        finalBtn.disabled = false;
-        finalBtn.setAttribute('aria-disabled', 'false');
-        finalBtn.innerHTML = originalText;
-        
-        // Mostrar notificação de sucesso
-        showNotification('Pedido enviado para o WhatsApp com sucesso!', false, true);
-        announceToScreenReader('Pedido enviado para o WhatsApp com sucesso!');
-        
-        // Limpar carrinho após sucesso
+        // Não precisamos restaurar o botão porque vamos sair da página
+        // Mas mantemos o código caso o redirecionamento falhe
         setTimeout(() => {
-            cart = [];
-            saveCart();
-            updateCartDisplay();
-            updateProductQuantities();
-            updateStepButtons();
-            updateFloatingCart();
-            goToStep(1);
-        }, 2000);
+            finalBtn.disabled = false;
+            finalBtn.setAttribute('aria-disabled', 'false');
+            finalBtn.innerHTML = originalText;
+        }, 3000);
         
     }, 1500);
 }
