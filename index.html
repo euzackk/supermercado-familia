@@ -30,12 +30,18 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        body, button, input, select, textarea, h1, h2, h3, p, span, div { 
-            font-family: 'DM Sans', sans-serif; 
-            color: var(--dark);
+        /* Fontes Globais */
+        body { 
+            background-color: var(--gray-light); 
+            color: var(--dark); 
+            overflow-x: hidden;
+            font-family: 'DM Sans', sans-serif;
         }
         
-        body { background-color: var(--gray-light); overflow-x: hidden; }
+        button, input, select, textarea, h1, h2, h3, p, span, div { 
+            font-family: 'DM Sans', sans-serif; 
+        }
+
         .container { max-width: 1300px; margin: 0 auto; padding: 0 5%; }
         button { border: none; outline: none; cursor: pointer; background: none; }
         img { display: block; max-width: 100%; }
@@ -44,7 +50,7 @@
         /* --- HEADER --- */
         header {
             position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
-            padding: 20px 0; background: transparent; transition: 0.4s ease; color: var(--white);
+            padding: 15px 0; background: transparent; transition: 0.4s ease; color: var(--white);
         }
         header.scrolled {
             background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px);
@@ -63,20 +69,20 @@
             border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); 
             backdrop-filter: blur(5px); color: var(--white); font-size: 15px; transition: 0.3s;
         }
-        .search-input::placeholder { color: rgba(255,255,255,0.9); } /* Texto placeholder mais visível */
+        .search-input::placeholder { color: rgba(255,255,255,0.9); }
         
         header.scrolled .search-input { background: var(--gray-light); border-color: transparent; color: var(--dark); }
         header.scrolled .search-input::placeholder { color: #999; }
         
-        /* CORREÇÃO DO ÍCONE DE PESQUISA */
+        /* Ícone de Pesquisa */
         .search-icon { 
             position: absolute; left: 15px; top: 50%; transform: translateY(-50%); 
-            color: #ffffff; /* Branco fixo no topo */
+            color: #ffffff; /* Branco fixo no banner */
             z-index: 5; pointer-events: none; transition: 0.3s;
-            opacity: 1 !important; /* Forçar visibilidade */
+            opacity: 1 !important;
         }
         header.scrolled .search-icon { 
-            color: #555555; /* Escuro quando rolar */
+            color: #555555; /* Escuro ao rolar */
         }
 
         .nav-icons { display: flex; gap: 20px; font-size: 22px; align-items: center; }
@@ -102,12 +108,16 @@
         }
         
         .hero-content { color: white; max-width: 800px; padding: 0 20px; margin-top: 60px; }
+        
+        /* CORREÇÃO: Forçar Branco nos Textos do Banner */
         .hero-content h1 { 
             font-size: 4rem; font-weight: 800; line-height: 1.1; margin-bottom: 20px; 
-            text-shadow: 0 4px 20px rgba(0,0,0,0.5); 
+            text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            color: #ffffff !important; /* <-- FORÇADO BRANCO */
         }
         .hero-content p {
             font-size: 1.3rem; margin-bottom: 30px; opacity: 0.95; font-weight: 500;
+            color: #ffffff !important; /* <-- FORÇADO BRANCO */
         }
 
         .btn-cta {
@@ -116,12 +126,12 @@
         }
         .btn-cta:hover { transform: scale(1.05); background: var(--white); color: var(--primary); }
         
-        /* Indicador de Deslizar (MÃOZINHA - POSIÇÃO CORRIGIDA) */
+        /* Indicador de Deslizar (Mãozinha) */
         .swipe-hint {
             position: absolute; 
-            bottom: 60px; /* Mais baixo (mesmo lugar de antes) */
+            bottom: 60px; /* Posição Original */
             left: 50%; 
-            transform: translateX(-50%); /* Centralizado */
+            transform: translateX(-50%);
             color: rgba(255,255,255,0.9); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
             display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 10; pointer-events: none;
         }
@@ -130,9 +140,15 @@
         }
         @keyframes swipeAnim {
             0% { transform: translateX(0); opacity: 0.6; }
-            50% { transform: translateX(-12px); opacity: 1; } /* Movimento lateral suave */
+            50% { transform: translateX(-12px); opacity: 1; }
             100% { transform: translateX(0); opacity: 0.6; }
         }
+
+        .scroll-down-indicator {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            color: white; animation: bounce 2s infinite; font-size: 20px; cursor: pointer; z-index: 10; opacity: 0.6;
+        }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform:translateY(0) translateX(-50%);} 40% {transform:translateY(-10px) translateX(-50%);} }
 
         /* --- LOJA --- */
         #loja-principal { 
@@ -159,7 +175,8 @@
             position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
             display: flex; flex-direction: column; justify-content: flex-end; padding: 20px;
         }
-        .cat-title { color: white; font-size: 20px; font-weight: 700; }
+        /* Título das Categorias (Branco) */
+        .cat-title { color: white !important; font-size: 20px; font-weight: 700; }
 
         .section-title { font-size: 28px; font-weight: 700; margin-bottom: 30px; text-align: center; }
 
@@ -170,6 +187,9 @@
             background: var(--white); border-radius: var(--radius); padding: 15px; position: relative;
             border: 1px solid transparent; display: flex; flex-direction: column;
             box-shadow: var(--shadow-sm); transition: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .product-card:hover { 
+            transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); border-color: rgba(0,0,0,0.05);
         }
         .tags { position: absolute; top: 12px; left: 12px; z-index: 2; }
         .tag.sale { background: #FF4757; color:white; padding:4px 10px; border-radius:4px; font-size:9px; font-weight:800; text-transform:uppercase; }
@@ -269,7 +289,7 @@
                 <div class="overlay">
                     <div class="hero-content" data-aos="fade-up">
                         <h1>Supermercado Família<br>
-                        <p>A qualidade que você conhece, agora com entrega rápida.</p>
+                        <p>Feito pra você e sua Família.</p>
                         <button onclick="rolarParaLoja()" class="btn-cta">Fazer Pedido Agora</button>
                     </div>
                 </div>
@@ -278,7 +298,7 @@
                 <div class="overlay">
                     <div class="hero-content">
                         <h1>O melhor Açougue da Zona Sul.</h1>
-                        <p>Cortes especiais para o seu churrascão com a Família</p>
+                        <p>Cortes especiais para o seu churrascão com a Família.</p>
                         <button onclick="filtrarCategoria('Açougue')" class="btn-cta">Ver Ofertas</button>
                     </div>
                 </div>
@@ -286,7 +306,7 @@
             <div class="swiper-slide" style="background-image: url('https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=2000&auto=format&fit=crop');">
                 <div class="overlay">
                     <div class="hero-content">
-                        <h1>Padaria de Ponta</h1>
+                        <h1>Padaria de Ponta.</h1>
                         <p>Pão francês e Pão de queijo quentinhos saindo do forno.</p>
                         <button onclick="filtrarCategoria('Padaria')" class="btn-cta">Ir para Padaria</button>
                     </div>
@@ -296,6 +316,11 @@
         
         <div class="swipe-hint">
             <i class="far fa-hand-pointer hand-icon"></i>
+            <span>Deslize</span>
+        </div>
+
+        <div class="scroll-down-indicator" onclick="rolarParaLoja()">
+            <i class="fas fa-chevron-down"></i>
         </div>
     </div>
 
@@ -655,4 +680,3 @@
     </script>
 </body>
 </html>
-
