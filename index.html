@@ -11,7 +11,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-    <script src="https://unpkg.com/imask"></script> <style>
+    <script src="https://unpkg.com/imask"></script>
+
+    <style>
         /* --- DESIGN SYSTEM (PREMIUM) --- */
         :root {
             --primary: #FF6B00; 
@@ -85,7 +87,7 @@
         }
         header.scrolled .badge { border-color: var(--white); }
 
-        /* --- BANNER TELA CHEIA --- */
+        /* --- BANNER TELA CHEIA (100vh) --- */
         .hero-slider { height: 100vh; width: 100%; position: relative; }
         .swiper-slide { background-size: cover; background-position: center; }
         .overlay {
@@ -103,6 +105,7 @@
         }
         .btn-cta:hover { transform: scale(1.05); background: var(--white); color: var(--primary); }
         
+        /* Setas do Slider */
         .swiper-button-next, .swiper-button-prev { color: white; width: 50px; height: 50px; background: rgba(255,255,255,0.1); border-radius: 50%; backdrop-filter: blur(5px); }
         .swiper-button-next:hover, .swiper-button-prev:hover { background: var(--primary); }
 
@@ -187,7 +190,7 @@
         .form-input {
             width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; background: #fafafa;
         }
-        /* Campo somente leitura (Rua, Bairro) */
+        /* Campo somente leitura */
         .form-input[readonly] { background: #eee; color: #777; cursor: not-allowed; }
         .form-input:focus { background: white; border-color: var(--primary); }
 
@@ -266,7 +269,7 @@
                     </div>
                 </div>
             </div>
-            <div class="swiper-slide" style="background-image: url('https://images.unsplash.com/photo-1608139639586-9eaade233791?q=80&w=2574&auto=format&fit=crop');">
+            <div class="swiper-slide" style="background-image: url('https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?q=80&w=2574&auto=format&fit=crop');">
                 <div class="overlay">
                     <div class="hero-content">
                         <h1>Açougue Premium.</h1>
@@ -275,11 +278,23 @@
                     </div>
                 </div>
             </div>
+            <div class="swiper-slide" style="background-image: url('https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=2000&auto=format&fit=crop');">
+                <div class="overlay">
+                    <div class="hero-content">
+                        <h1>Padaria Artesanal.</h1>
+                        <p>Pão quentinho saindo do forno toda hora.</p>
+                        <button onclick="rolarParaLoja()" class="btn-cta">Ir para Padaria</button>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="swiper-button-next"></div>
         <div class="swiper-button-prev"></div>
         <div class="swiper-pagination"></div>
-        <div class="scroll-down-indicator" onclick="rolarParaLoja()"><i class="fas fa-chevron-down"></i></div>
+        
+        <div class="scroll-down-indicator" onclick="rolarParaLoja()">
+            <i class="fas fa-chevron-down"></i>
+        </div>
     </div>
 
     <div id="loja-principal">
@@ -288,8 +303,8 @@
             <div class="cat-grid">
                 <div class="cat-card" onclick="filtrarCategoria('Hortifruti')" style="background-image: url('https://images.unsplash.com/photo-1610832958506-aa56368176cf');"><div class="cat-gradient"><div class="cat-title">Hortifruti</div></div></div>
                 <div class="cat-card" onclick="filtrarCategoria('Mercearia')" style="background-image: url('https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8');"><div class="cat-gradient"><div class="cat-title">Mercearia</div></div></div>
+                <div class="cat-card" onclick="filtrarCategoria('Açougue')" style="background-image: url('https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?q=80&w=600');"><div class="cat-gradient"><div class="cat-title">Açougue</div></div></div>
                 <div class="cat-card" onclick="filtrarCategoria('Bebidas')" style="background-image: url('https://images.unsplash.com/photo-1600093463592-8e36ae95ef56');"><div class="cat-gradient"><div class="cat-title">Bebidas</div></div></div>
-                <div class="cat-card" onclick="filtrarCategoria('Limpeza')" style="background-image: url('https://images.unsplash.com/photo-1563453392212-326f5e854473');"><div class="cat-gradient"><div class="cat-title">Limpeza</div></div></div>
             </div>
         </div>
 
@@ -377,7 +392,6 @@
                         <input type="text" id="reg-cidade" class="form-input" readonly>
                     </div>
                 </div>
-
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Número</label>
@@ -426,6 +440,10 @@
         </div>
     </div>
 
+    <div style="position:fixed; bottom:10px; left:10px; z-index:2000; opacity:0.6;">
+        <button onclick="baixarPlanilhaClientes()" style="background:#333; color:white; padding:5px 10px; border-radius:5px; font-size:11px;">Admin: Baixar Planilha</button>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
@@ -433,7 +451,7 @@
     <script>
         AOS.init();
 
-        // --- 1. VISUAL ---
+        // 1. VISUAL
         let lastScrollTop = 0;
         const header = document.getElementById("header");
         window.addEventListener("scroll", function() {
@@ -446,7 +464,7 @@
         new Swiper(".hero-slider", { loop: true, effect: 'fade', fadeEffect: { crossFade: true }, autoplay: { delay: 5000 }, navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" }});
         function rolarParaLoja() { document.getElementById('loja-principal').scrollIntoView({ behavior: 'smooth' }); }
 
-        // --- 2. PRODUTOS ---
+        // 2. PRODUTOS
         let produtosDB = [];
         async function buscarProdutos() {
             try {
@@ -496,11 +514,10 @@
         }
         function filtrarCategoria(cat) { 
             document.getElementById('campoBusca').value = "";
-            renderProdutos(cat); 
-            document.getElementById('vitrine').scrollIntoView({behavior:'smooth'});
+            renderProdutos(cat); document.getElementById('vitrine').scrollIntoView({behavior:'smooth'});
         }
 
-        // --- 3. CARRINHO ---
+        // 3. CARRINHO
         let cart = JSON.parse(localStorage.getItem('cart_familia')) || [];
         function saveCart() { localStorage.setItem('cart_familia', JSON.stringify(cart)); updateCartUI(); }
         function addCart(id) {
@@ -518,12 +535,7 @@
             let total = 0;
             cart.forEach(i => {
                 total += i.preco * i.qtd;
-                container.innerHTML += `
-                    <div style="display:flex; gap:10px; margin-bottom:15px; align-items:center; border-bottom:1px solid #f5f5f5; padding-bottom:10px;">
-                        <img src="${i.img}" style="width:50px; height:50px; object-fit:contain;">
-                        <div style="flex:1; font-size:13px;"><b>${i.nome}</b><br>${i.qtd}x R$ ${i.preco.toFixed(2)}</div>
-                        <i class="fas fa-trash" style="color:#ff4757; cursor:pointer" onclick="removeCart(${i.id})"></i>
-                    </div>`;
+                container.innerHTML += `<div style="display:flex; gap:10px; margin-bottom:15px; align-items:center; border-bottom:1px solid #f5f5f5; padding-bottom:10px;"><img src="${i.img}" style="width:50px; height:50px; object-fit:contain;"><div style="flex:1; font-size:13px;"><b>${i.nome}</b><br>${i.qtd}x R$ ${i.preco.toFixed(2)}</div><i class="fas fa-trash" style="color:#ff4757; cursor:pointer" onclick="removeCart(${i.id})"></i></div>`;
             });
             document.getElementById('subtotal-carrinho').innerText = total.toFixed(2);
         }
@@ -532,12 +544,11 @@
             if(forceOpen || d.style.right !== "0px") { d.style.right = "0px"; o.style.display="block"; } else { d.style.right = "-450px"; o.style.display="none"; }
         }
 
-        // --- 4. CHECKOUT & CEP ---
+        // 4. CHECKOUT
         let dbUsers = JSON.parse(localStorage.getItem('db_users_familia')) || {};
         let usuarioLogado = JSON.parse(localStorage.getItem('session_user_familia')) || null;
         let formaPagamento = "", valorFrete = 0, phoneTemp = "";
 
-        // Máscaras
         IMask(document.getElementById('login-phone'), { mask: '(00) 00000-0000' });
         IMask(document.getElementById('reg-cep'), { mask: '00000-000' });
 
@@ -580,7 +591,6 @@
             } else alert("Senha incorreta!");
         }
 
-        // --- VIACEP INTEGRAÇÃO ---
         async function buscarCep() {
             let cep = document.getElementById('reg-cep').value.replace(/\D/g, '');
             if(cep.length === 8) {
@@ -592,11 +602,8 @@
                         document.getElementById('reg-rua').value = data.logradouro;
                         document.getElementById('reg-bairro').value = data.bairro;
                         document.getElementById('reg-cidade').value = `${data.localidade}/${data.uf}`;
-                        document.getElementById('reg-numero').focus(); // Pula pro número
-                    } else {
-                        alert("CEP não encontrado!");
-                        document.getElementById('reg-rua').value = "";
-                    }
+                        document.getElementById('reg-numero').focus();
+                    } else { alert("CEP não encontrado!"); document.getElementById('reg-rua').value = ""; }
                 } catch(e) { alert("Erro ao buscar CEP"); }
             }
         }
@@ -621,8 +628,8 @@
             if(!nome || !senha || !zona || !cep || !rua || !num) return alert("Preencha todos os campos obrigatórios!");
 
             const enderecoCompleto = `${rua}, ${num} ${comp ? '- ' + comp : ''}, ${bairro} - CEP: ${cep}`;
-
             const novoUser = { telefone: phoneTemp, nome: nome, senha: senha, zona: zona, endereco: enderecoCompleto };
+            
             dbUsers[phoneTemp] = novoUser;
             localStorage.setItem('db_users_familia', JSON.stringify(dbUsers));
             usuarioLogado = novoUser;
@@ -667,8 +674,29 @@
             window.open(`https://wa.me/${numMercado}?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
+        function baixarPlanilhaClientes() {
+            const db = JSON.parse(localStorage.getItem('db_users_familia')) || {};
+            const lista = Object.values(db);
+            if(lista.length === 0) return alert("Nenhum cliente cadastrado neste dispositivo.");
+
+            let csvContent = "\uFEFFNome,Telefone,Zona,Endereço\n";
+            lista.forEach(user => {
+                let end = user.endereco.replace(/,/g, " ");
+                csvContent += `${user.nome},${user.telefone},${user.zona},${end}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "clientes_familia.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         window.onload = () => { buscarProdutos(); updateCartUI(); };
     </script>
 </body>
-
 </html>
