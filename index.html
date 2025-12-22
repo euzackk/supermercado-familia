@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Supermercado Família | Premium</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
@@ -26,7 +28,9 @@
             --shadow-lg: 0 20px 40px rgba(0,0,0,0.12);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'DM Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        /* FORÇANDO A FONTE GLOBALMENTE */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'DM Sans', sans-serif !important; -webkit-tap-highlight-color: transparent; }
+        
         body { background-color: var(--gray-light); color: var(--dark); overflow-x: hidden; }
         .container { max-width: 1300px; margin: 0 auto; padding: 0 5%; }
         button { border: none; outline: none; cursor: pointer; background: none; }
@@ -81,10 +85,21 @@
             background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.7));
             display: flex; align-items: center; justify-content: center; text-align: center;
         }
+        /* Correção da Fonte do Banner */
         .hero-content { color: white; max-width: 800px; padding: 0 20px; margin-top: 60px; }
-        .hero-content h1 { font-size: 4rem; font-weight: 800; line-height: 1.1; margin-bottom: 20px; text-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .hero-content h1 { 
+            font-family: 'DM Sans', sans-serif !important; 
+            font-size: 4rem; font-weight: 800; line-height: 1.1; margin-bottom: 20px; 
+            text-shadow: 0 4px 20px rgba(0,0,0,0.5); 
+        }
+        .hero-content p {
+            font-family: 'DM Sans', sans-serif !important;
+            font-size: 1.3rem; margin-bottom: 30px; opacity: 0.95; font-weight: 500;
+        }
+
         .btn-cta {
             padding: 18px 50px; background: var(--primary); color: white; border-radius: 50px;
+            font-family: 'DM Sans', sans-serif !important;
             font-weight: 700; font-size: 18px; transition: 0.3s; box-shadow: 0 10px 30px rgba(255, 107, 0, 0.4);
         }
         
@@ -99,11 +114,10 @@
         }
         @keyframes swipeAnim {
             0% { transform: translateX(0); opacity: 0.5; }
-            50% { transform: translateX(-15px); opacity: 1; } /* Movimento para esquerda */
+            50% { transform: translateX(-15px); opacity: 1; }
             100% { transform: translateX(0); opacity: 0.5; }
         }
 
-        /* Seta Scroll Down */
         .scroll-down-indicator {
             position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
             color: white; animation: bounce 2s infinite; font-size: 20px; cursor: pointer; z-index: 10; opacity: 0.6;
@@ -116,7 +130,7 @@
             border-radius: 30px 30px 0 0; margin-top: -30px; padding-top: 30px;
         }
 
-        /* Busca Mobile (Aparece no corpo) */
+        /* Busca Mobile */
         .mobile-search-wrapper { display: none; margin-bottom: 25px; padding: 0 10px; }
         .mobile-search-inner { position: relative; }
         .mobile-input {
@@ -187,15 +201,14 @@
         .step-content.active { display: block; }
         @keyframes fadeIn { from{opacity:0; transform: translateY(10px);} to{opacity:1; transform: translateY(0);} }
         
-        /* Pagamento Grid */
         .payment-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .payment-option { border: 1px solid #ddd; padding: 10px; border-radius: 8px; text-align: center; font-size: 12px; cursor: pointer; }
         .payment-option.selected { background: var(--primary); color: white; border-color: var(--primary); }
 
         /* --- MOBILE MEDIA QUERIES --- */
         @media(max-width: 768px) { 
-            .search-box { display: none; } /* Esconde do Header */
-            .mobile-search-wrapper { display: block; } /* Mostra no Corpo */
+            .search-box { display: none; } 
+            .mobile-search-wrapper { display: block; }
 
             .hero-content h1 { font-size: 2.8rem; }
             .section-title { font-size: 22px; }
@@ -242,8 +255,8 @@
             <div class="swiper-slide" style="background-image: url('https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=2574&auto=format&fit=crop');">
                 <div class="overlay">
                     <div class="hero-content" data-aos="fade-up">
-                        <h1>Mercado Família<br>
-                        <p>Feito pra você.</p>
+                        <h1>Mercado Família<br>Delivery Premium</h1>
+                        <p>A qualidade que você conhece, agora com entrega rápida.</p>
                         <button onclick="rolarParaLoja()" class="btn-cta">Fazer Pedido Agora</button>
                     </div>
                 </div>
@@ -251,8 +264,8 @@
             <div class="swiper-slide" style="background-image: url('https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?q=80&w=2574&auto=format&fit=crop');">
                 <div class="overlay">
                     <div class="hero-content">
-                        <h1>O melhor Açougue da zona sul</h1>
-                        <p>Cortes especiais para o seu churrascão com a Família.</p>
+                        <h1>Açougue Premium.</h1>
+                        <p>Cortes especiais para o seu churrasco.</p>
                         <button onclick="filtrarCategoria('Açougue')" class="btn-cta">Ver Ofertas</button>
                     </div>
                 </div>
@@ -260,8 +273,8 @@
             <div class="swiper-slide" style="background-image: url('https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=2000&auto=format&fit=crop');">
                 <div class="overlay">
                     <div class="hero-content">
-                        <h1>Padaria de Ponta</h1>
-                        <p>Pão francês e Pão de queijo quentinhos saindo do forno.</p>
+                        <h1>Padaria Artesanal.</h1>
+                        <p>Pão quentinho saindo do forno.</p>
                         <button onclick="filtrarCategoria('Padaria')" class="btn-cta">Ir para Padaria</button>
                     </div>
                 </div>
