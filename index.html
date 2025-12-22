@@ -14,7 +14,7 @@
     <script src="https://unpkg.com/imask"></script>
 
     <style>
-        /* --- DESIGN SYSTEM (PREMIUM ORIGINAL) --- */
+        /* --- DESIGN SYSTEM --- */
         :root {
             --primary: #FF6B00; 
             --accent: #00AEEF;
@@ -36,46 +36,33 @@
         /* --- HEADER --- */
         header {
             position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
-            padding: 20px 0;
-            background: transparent;
-            transition: 0.4s ease;
-            color: var(--white);
+            padding: 15px 0; background: transparent; transition: 0.4s ease; color: var(--white);
         }
         header.scrolled {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            padding: 10px 0;
-            color: var(--dark);
-            box-shadow: var(--shadow-sm);
+            background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px);
+            padding: 10px 0; color: var(--dark); box-shadow: var(--shadow-sm);
         }
 
         .nav-flex { display: flex; justify-content: space-between; align-items: center; }
-        
-        .logo img { 
-            height: 55px; width: auto; transition: 0.3s; 
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); 
-        }
-        header.scrolled .logo img { height: 45px; filter: none; }
+        .logo img { height: 50px; width: auto; transition: 0.3s; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+        header.scrolled .logo img { height: 40px; filter: none; }
 
-        /* Busca */
+        /* Busca Desktop */
         .search-box { flex: 1; max-width: 500px; margin: 0 40px; position: relative; }
         .search-input {
             width: 100%; padding: 12px 20px 12px 45px; border-radius: 50px; 
-            border: 1px solid rgba(255,255,255,0.3); 
-            background: rgba(255,255,255,0.15); backdrop-filter: blur(5px);
-            color: var(--white); font-size: 15px; transition: 0.3s;
+            border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); 
+            backdrop-filter: blur(5px); color: var(--white); font-size: 15px; transition: 0.3s;
         }
         .search-input::placeholder { color: rgba(255,255,255,0.8); }
         .search-input:focus { background: var(--white); color: var(--dark); border-color: var(--white); }
         
         header.scrolled .search-input { background: var(--gray-light); border-color: transparent; color: var(--dark); }
         header.scrolled .search-input::placeholder { color: #999; }
-        
         .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); opacity: 0.8; pointer-events: none; }
 
         .nav-icons { display: flex; gap: 20px; font-size: 22px; align-items: center; }
         .icon-btn { cursor: pointer; position: relative; transition: 0.3s; }
-        .icon-btn:hover { transform: scale(1.1); color: var(--primary); }
         
         .badge {
             position: absolute; top: -5px; right: -8px; background: var(--primary); color: white;
@@ -85,10 +72,9 @@
         }
         header.scrolled .badge { border-color: var(--white); }
 
-        /* --- BANNER TELA CHEIA (SEM SETAS, APENAS SWIPE) --- */
+        /* --- BANNER --- */
         .hero-slider { height: 100vh; width: 100%; position: relative; cursor: grab; }
         .hero-slider:active { cursor: grabbing; }
-        
         .swiper-slide { background-size: cover; background-position: center; }
         .overlay {
             position: absolute; inset: 0;
@@ -97,33 +83,53 @@
         }
         .hero-content { color: white; max-width: 800px; padding: 0 20px; margin-top: 60px; }
         .hero-content h1 { font-size: 4rem; font-weight: 800; line-height: 1.1; margin-bottom: 20px; text-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        .hero-content p { font-size: 1.3rem; margin-bottom: 30px; opacity: 0.95; font-weight: 500; }
-        
         .btn-cta {
             padding: 18px 50px; background: var(--primary); color: white; border-radius: 50px;
             font-weight: 700; font-size: 18px; transition: 0.3s; box-shadow: 0 10px 30px rgba(255, 107, 0, 0.4);
         }
-        .btn-cta:hover { transform: scale(1.05); background: var(--white); color: var(--primary); }
-
-        /* Indicador Scroll */
-        .scroll-down-indicator {
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            color: white; animation: bounce 2s infinite; font-size: 24px; cursor: pointer; z-index: 10;
+        
+        /* Indicador de Deslizar (Swipe) */
+        .swipe-hint {
+            position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+            color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+            display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 10; pointer-events: none;
         }
-        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform:translateY(0) translateX(-50%);} 40% {transform:translateY(-10px) translateX(-50%);} 60% {transform:translateY(-5px) translateX(-50%);} }
+        .hand-icon {
+            font-size: 24px; animation: swipeAnim 2s infinite;
+        }
+        @keyframes swipeAnim {
+            0% { transform: translateX(0); opacity: 0.5; }
+            50% { transform: translateX(-15px); opacity: 1; } /* Movimento para esquerda */
+            100% { transform: translateX(0); opacity: 0.5; }
+        }
+
+        /* Seta Scroll Down */
+        .scroll-down-indicator {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            color: white; animation: bounce 2s infinite; font-size: 20px; cursor: pointer; z-index: 10; opacity: 0.6;
+        }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform:translateY(0) translateX(-50%);} 40% {transform:translateY(-10px) translateX(-50%);} }
 
         /* --- LOJA --- */
         #loja-principal { 
             position: relative; background: var(--gray-light); z-index: 2; 
-            border-radius: 30px 30px 0 0; margin-top: -30px; padding-top: 50px;
+            border-radius: 30px 30px 0 0; margin-top: -30px; padding-top: 30px;
         }
+
+        /* Busca Mobile (Aparece no corpo) */
+        .mobile-search-wrapper { display: none; margin-bottom: 25px; padding: 0 10px; }
+        .mobile-search-inner { position: relative; }
+        .mobile-input {
+            width: 100%; padding: 15px 15px 15px 45px; border-radius: 50px; border: none;
+            background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.05); font-size: 16px; outline: none;
+        }
+        .mobile-search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #999; }
 
         .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         .cat-card {
             height: 200px; border-radius: var(--radius); overflow: hidden; position: relative; cursor: pointer;
             box-shadow: var(--shadow-sm); background-size: cover; background-position: center; transition: 0.3s;
         }
-        .cat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
         .cat-gradient {
             position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
             display: flex; flex-direction: column; justify-content: flex-end; padding: 20px;
@@ -140,16 +146,12 @@
             border: 1px solid transparent; display: flex; flex-direction: column;
             box-shadow: var(--shadow-sm); transition: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-        .product-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-        
         .tags { position: absolute; top: 12px; left: 12px; z-index: 2; }
         .tag.sale { background: #FF4757; color:white; padding:4px 10px; border-radius:4px; font-size:9px; font-weight:800; text-transform:uppercase; }
 
         .card-img-wrap { height: 160px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; overflow: hidden; }
-        .card-img { max-height: 100%; max-width: 100%; mix-blend-mode: multiply; transition: transform 0.4s ease; }
-        .product-card:hover .card-img { transform: scale(1.15); }
-
-        .card-info { flex: 1; display: flex; flex-direction: column; }
+        .card-img { max-height: 100%; max-width: 100%; mix-blend-mode: multiply; }
+        
         .card-cat { font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
         .card-title { font-size: 15px; font-weight: 600; color: var(--dark); margin-bottom: 5px; height: 40px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
         .card-price { font-size: 20px; font-weight: 700; color: var(--primary); margin-top: auto; }
@@ -161,55 +163,26 @@
         }
         .btn-add:hover { background: var(--primary); color: white; transform: rotate(90deg); }
 
-        /* --- CARRINHO (DRAWER) CORRIGIDO --- */
-        .drawer-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1001; 
-            display: none; /* Começa escondido */
+        /* --- MODAL E DRAWER --- */
+        .drawer-overlay, .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; 
+            display: none;
         }
         .drawer {
-            position: fixed; top: 0; right: -450px; /* Começa escondido fora da tela */
-            width: 450px; height: 100%;
-            background: var(--white); z-index: 1002; transition: 0.4s cubic-bezier(0.77, 0, 0.175, 1);
-            padding: 30px; display: flex; flex-direction: column; box-shadow: -10px 0 50px rgba(0,0,0,0.2);
+            position: fixed; top: 0; right: -450px; width: 450px; height: 100%;
+            background: var(--white); z-index: 2001; transition: 0.4s;
+            padding: 30px; display: flex; flex-direction: column;
         }
-        .drawer.open { right: 0; } /* Classe que abre */
+        .drawer.open { right: 0; }
         
-        /* --- MOBILE ADJUSTS --- */
-        @media(max-width: 600px) { 
-            /* Fontes */
-            .hero-content h1 { font-size: 2.8rem; }
-            .section-title { font-size: 22px; }
-
-            /* Grid 2 Colunas */
-            .products-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-            .cat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-            
-            /* Cards Menores */
-            .card-img-wrap { height: 110px; }
-            .cat-card { height: 110px; }
-            .card-title { font-size: 13px; height: 35px; }
-            .card-price { font-size: 17px; }
-            .btn-cta { padding: 15px 30px; font-size: 16px; }
-
-            /* Drawer e Modal Fullscreen */
-            .drawer { width: 100%; right: -100%; max-width: 100%; } /* Garante que sai da tela */
-            .modal-box { width: 100%; height: 100%; border-radius: 0; max-height: 100vh; }
-            
-            /* Esconder busca desktop */
-            .search-box { display: none; }
-        }
-
-        /* --- MODAL E FORMS --- */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000;
-            display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px);
-        }
         .modal-box {
             background: white; width: 500px; max-width: 90%; border-radius: 20px;
-            padding: 30px; position: relative; max-height: 90vh; overflow-y: auto;
+            padding: 30px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            max-height: 90vh; overflow-y: auto; z-index: 2002;
         }
         .form-input { width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 10px; background: #fafafa; margin-bottom: 10px; }
         .btn-block { width: 100%; padding: 16px; background: var(--primary); color: white; border-radius: 12px; font-weight: 700; margin-top: 15px; }
+        
         .step-content { display: none; animation: fadeIn 0.4s; }
         .step-content.active { display: block; }
         @keyframes fadeIn { from{opacity:0; transform: translateY(10px);} to{opacity:1; transform: translateY(0);} }
@@ -218,6 +191,25 @@
         .payment-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .payment-option { border: 1px solid #ddd; padding: 10px; border-radius: 8px; text-align: center; font-size: 12px; cursor: pointer; }
         .payment-option.selected { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* --- MOBILE MEDIA QUERIES --- */
+        @media(max-width: 768px) { 
+            .search-box { display: none; } /* Esconde do Header */
+            .mobile-search-wrapper { display: block; } /* Mostra no Corpo */
+
+            .hero-content h1 { font-size: 2.8rem; }
+            .section-title { font-size: 22px; }
+
+            .cat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .cat-card { height: 110px; }
+            
+            .products-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .card-img-wrap { height: 110px; }
+            .card-title { font-size: 13px; height: 35px; }
+            .card-price { font-size: 17px; }
+
+            .drawer { width: 100%; right: -100%; }
+        }
     </style>
 </head>
 <body>
@@ -230,7 +222,7 @@
             
             <div class="search-box">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" id="campoBusca" class="search-input" placeholder="Buscar produtos..." onkeyup="filtrarProdutos()">
+                <input type="text" id="campoBusca" class="search-input" placeholder="Buscar produtos..." onkeyup="filtrarProdutos('desktop')">
             </div>
             
             <div class="nav-icons">
@@ -250,8 +242,8 @@
             <div class="swiper-slide" style="background-image: url('https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=2574&auto=format&fit=crop');">
                 <div class="overlay">
                     <div class="hero-content" data-aos="fade-up">
-                        <h1>Mercado Família<br>Delivery Premium</h1>
-                        <p>A qualidade que você conhece, agora com entrega rápida.</p>
+                        <h1>Mercado Família<br>
+                        <p>Feito pra você.</p>
                         <button onclick="rolarParaLoja()" class="btn-cta">Fazer Pedido Agora</button>
                     </div>
                 </div>
@@ -259,8 +251,8 @@
             <div class="swiper-slide" style="background-image: url('https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?q=80&w=2574&auto=format&fit=crop');">
                 <div class="overlay">
                     <div class="hero-content">
-                        <h1>Açougue Premium.</h1>
-                        <p>Cortes especiais para o seu churrasco.</p>
+                        <h1>O melhor Açougue da zona sul</h1>
+                        <p>Cortes especiais para o seu churrascão com a Família.</p>
                         <button onclick="filtrarCategoria('Açougue')" class="btn-cta">Ver Ofertas</button>
                     </div>
                 </div>
@@ -268,22 +260,31 @@
             <div class="swiper-slide" style="background-image: url('https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=2000&auto=format&fit=crop');">
                 <div class="overlay">
                     <div class="hero-content">
-                        <h1>Padaria Artesanal.</h1>
-                        <p>Pão quentinho saindo do forno.</p>
+                        <h1>Padaria de Ponta</h1>
+                        <p>Pão francês e Pão de queijo quentinhos saindo do forno.</p>
                         <button onclick="filtrarCategoria('Padaria')" class="btn-cta">Ir para Padaria</button>
                     </div>
                 </div>
             </div>
         </div>
         
+        <div class="swipe-hint">
+            <i class="far fa-hand-pointer hand-icon"></i>
+            <span>Deslize</span>
+        </div>
+
         <div class="scroll-down-indicator" onclick="rolarParaLoja()">
             <i class="fas fa-chevron-down"></i>
         </div>
     </div>
 
     <div id="loja-principal">
-        <div class="container" style="margin-bottom:20px;">
-             <input type="text" id="campoBuscaMobile" class="form-input" style="display:none; border-radius:30px;" placeholder="Buscar produtos..." onkeyup="filtrarProdutosMobile()">
+        
+        <div class="container mobile-search-wrapper">
+            <div class="mobile-search-inner">
+                <i class="fas fa-search mobile-search-icon"></i>
+                <input type="text" id="campoBuscaMobile" class="mobile-input" placeholder="Buscar produtos..." onkeyup="filtrarProdutos('mobile')">
+            </div>
         </div>
 
         <div class="container categories-wrapper">
@@ -392,11 +393,6 @@
 
         function rolarParaLoja() { document.getElementById('loja-principal').scrollIntoView({ behavior: 'smooth' }); }
 
-        // Mobile Search Toggle
-        if(window.innerWidth < 768) {
-            document.getElementById('campoBuscaMobile').style.display = 'block';
-        }
-
         // 2. PRODUTOS (XML Timestamp)
         let produtosDB = [];
         async function carregarProdutos() {
@@ -451,9 +447,13 @@
             });
         }
 
-        function filtrarProdutos() {
-            const termo = document.getElementById('campoBusca').value.toLowerCase();
+        function filtrarProdutos(origem) {
+            // Verifica qual input foi usado (desktop ou mobile)
+            const idInput = origem === 'mobile' ? 'campoBuscaMobile' : 'campoBusca';
+            const termo = document.getElementById(idInput).value.toLowerCase();
+            
             if(termo.length > 0) document.getElementById('loja-principal').scrollIntoView({behavior:'smooth'});
+            
             const lista = produtosDB.filter(p => p.nome.toLowerCase().includes(termo));
             const container = document.getElementById('lista-produtos');
             container.innerHTML = "";
@@ -461,17 +461,10 @@
                container.innerHTML += `<div class="product-card"><div class="card-img-wrap"><img src="${p.img}" class="card-img"></div><div class="card-info"><span class="card-cat">${p.cat}</span><div class="card-title">${p.nome}</div><div class="card-price">R$ ${p.preco.toFixed(2)}</div></div><button class="btn-add" onclick="addCart(${p.id})"><i class="fas fa-plus"></i></button></div>`;
             });
         }
-        function filtrarProdutosMobile() {
-            const termo = document.getElementById('campoBuscaMobile').value.toLowerCase();
-            const lista = produtosDB.filter(p => p.nome.toLowerCase().includes(termo));
-            const container = document.getElementById('lista-produtos');
-            container.innerHTML = "";
-            lista.forEach(p => {
-               container.innerHTML += `<div class="product-card"><div class="card-img-wrap"><img src="${p.img}" class="card-img"></div><div class="card-info"><span class="card-cat">${p.cat}</span><div class="card-title">${p.nome}</div><div class="card-price">R$ ${p.preco.toFixed(2)}</div></div><button class="btn-add" onclick="addCart(${p.id})"><i class="fas fa-plus"></i></button></div>`;
-            });
-        }
+        
         function filtrarCategoria(cat) { 
             document.getElementById('campoBusca').value = "";
+            document.getElementById('campoBuscaMobile').value = "";
             renderProdutos(cat); document.getElementById('vitrine').scrollIntoView({behavior:'smooth'});
         }
 
