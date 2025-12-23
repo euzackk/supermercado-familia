@@ -57,12 +57,14 @@
 
         /* Busca Desktop */
         .search-box { flex: 1; max-width: 500px; margin: 0 40px; position: relative; }
+        
         .search-input {
             width: 100%; padding: 12px 20px 12px 45px; border-radius: 50px; 
             border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); 
             backdrop-filter: blur(5px); color: var(--white); font-size: 15px; transition: 0.3s;
         }
         .search-input::placeholder { color: rgba(255,255,255,0.9); }
+        
         header.scrolled .search-input { background: var(--gray-light); border-color: transparent; color: var(--dark); }
         header.scrolled .search-input::placeholder { color: #999; }
         
@@ -109,7 +111,7 @@
         }
         .btn-cta:hover { transform: scale(1.05); background: var(--white); color: var(--primary); }
         
-        /* Swipe Hint */
+        /* Swipe Hint Centralizado */
         .swipe-hint {
             position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
             color: rgba(255,255,255,0.9); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
@@ -327,9 +329,18 @@
                     <input type="text" id="reg-cep" class="form-input" placeholder="CEP" onblur="buscarCep()">
                     <input type="text" id="reg-numero" class="form-input" placeholder="Número">
                 </div>
-                <input type="text" id="reg-rua" class="form-input" readonly placeholder="Rua">
+                
+                <label style="font-size:12px; font-weight:bold; margin-top:10px; display:block;">Escolha sua Zona (Frete)</label>
+                <select id="reg-zona" class="form-input" style="border-color:var(--primary); font-weight:bold;">
+                    <option value="">Selecione...</option>
+                    <option value="Zona Sul">Zona Sul (Frete Grátis)</option>
+                    <option value="Zona Leste">Zona Leste</option>
+                    <option value="Zona Norte">Zona Norte</option>
+                    <option value="Centro">Centro</option>
+                </select>
+
+                <input type="text" id="reg-rua" class="form-input" readonly placeholder="Rua (Automático)">
                 <input type="text" id="reg-bairro" class="form-input" readonly placeholder="Bairro">
-                <input type="text" id="reg-zona" class="form-input" readonly style="color:var(--primary); font-weight:bold;">
                 <button onclick="finalizarCadastro()" class="btn-block">Salvar</button>
             </div>
 
@@ -404,7 +415,7 @@
 
         // 2. PRODUTOS E LOGICA KG
         let produtosDB = [];
-        let produtoPesoTemp = null; // Guarda produto temporario para o modal de peso
+        let produtoPesoTemp = null; 
 
         async function carregarProdutos() {
             try {
@@ -476,7 +487,6 @@
         
         function verificarAdicao(id) {
             const p = produtosDB.find(x => x.id === id);
-            // Verifica se é produto de KG
             if(p.nome.toLowerCase().includes('kg') || p.nome.toLowerCase().includes('kilo') || p.nome.toLowerCase().includes('peso')) {
                 abrirModalPeso(p);
             } else {
@@ -502,7 +512,7 @@
         function confirmarPeso() {
             const gramas = parseFloat(document.getElementById('input-gramas').value);
             if(!gramas || gramas <= 0) return alert("Digite a quantidade em gramas.");
-            const qtdReal = gramas / 1000; // Converte para decimal (ex: 0.500)
+            const qtdReal = gramas / 1000; 
             addCart(produtoPesoTemp, qtdReal, true);
             fecharModalPeso();
         }
@@ -514,11 +524,7 @@
 
         function addCart(product, qtd, isKg) {
             const item = cart.find(x => x.id === product.id);
-            if(item) {
-                item.qtd += qtd;
-            } else {
-                cart.push({...product, qtd: qtd, isKg: isKg});
-            }
+            if(item) { item.qtd += qtd; } else { cart.push({...product, qtd: qtd, isKg: isKg}); }
             saveCart(); 
             Toastify({ text: "Adicionado!", duration: 1500, gravity: "bottom", style: { background: "#1A1A1A", borderRadius:"20px"} }).showToast();
         }
@@ -526,7 +532,7 @@
         function removeCart(id) { cart = cart.filter(x => x.id !== id); saveCart(); }
         
         function updateCartUI() {
-            document.getElementById('contador').innerText = cart.length; // Conta itens únicos
+            document.getElementById('contador').innerText = cart.length; 
             const container = document.getElementById('itens-carrinho');
             container.innerHTML = "";
             let total = 0;
@@ -544,17 +550,16 @@
             else { d.classList.add('open'); o.style.display="block"; }
         }
 
-        // 4. SISTEMA DE USUARIO E CHECKOUT
+        // 4. SISTEMA DE USUARIO, PERSISTÊNCIA E ZONAS
         let dbUsers = JSON.parse(localStorage.getItem('db_users_familia')) || {};
-        let usuarioLogado = JSON.parse(localStorage.getItem('session_user_familia')) || null;
-        let formaPagamento = "", valorFrete = 0;
+        let usuarioLogado = null; 
 
         IMask(document.getElementById('login-phone'), { mask: '(00) 00000-0000' });
         IMask(document.getElementById('reg-cep'), { mask: '00000-000' });
 
         function fecharModal() { document.getElementById('modalCheckout').style.display = 'none'; }
         
-        // Área do Usuário
+        // CORREÇÃO: Abre LOGIN se não tiver usuário, senão abre PERFIL
         function abrirPerfil() { 
             if(usuarioLogado) {
                 document.getElementById('perfil-nome').value = usuarioLogado.nome;
@@ -562,17 +567,25 @@
                 document.getElementById('perfil-end').value = usuarioLogado.endereco;
                 document.getElementById('modalPerfil').style.display = 'flex';
             } else {
-                iniciarCheckout(); // Abre login
+                // Abre login direto
+                document.getElementById('drawer').classList.remove('open');
+                document.getElementById('overlay').style.display = 'none';
+                document.getElementById('modalCheckout').style.display = 'flex';
+                document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+                document.getElementById('step-login').classList.add('active');
             }
         }
 
         function salvarPerfil() {
             if(usuarioLogado) {
+                const phoneClean = usuarioLogado.telefone.replace(/\D/g, '');
                 usuarioLogado.nome = document.getElementById('perfil-nome').value;
                 usuarioLogado.endereco = document.getElementById('perfil-end').value;
-                dbUsers[usuarioLogado.telefone] = usuarioLogado;
+                
+                dbUsers[phoneClean] = usuarioLogado;
                 localStorage.setItem('db_users_familia', JSON.stringify(dbUsers));
                 localStorage.setItem('session_user_familia', JSON.stringify(usuarioLogado));
+                
                 alert("Dados atualizados!");
                 document.getElementById('modalPerfil').style.display = 'none';
             }
@@ -595,26 +608,32 @@
             else { document.getElementById('step-login').classList.add('active'); document.getElementById('dynamic-auth-area').innerHTML = ""; }
         }
 
+        // CORREÇÃO: Limpa a máscara para salvar/buscar
         function verificarUsuario() {
-            const phone = document.getElementById('login-phone').value;
-            if(phone.length < 14) return alert("Digite um WhatsApp válido");
-            if(dbUsers[phone]) {
+            const phoneMasked = document.getElementById('login-phone').value;
+            const phoneClean = phoneMasked.replace(/\D/g, ''); // Apenas números
+            
+            if(phoneClean.length < 10) return alert("Digite um WhatsApp válido");
+
+            if(dbUsers[phoneClean]) {
+                // Usuário Existe
                 if(!document.getElementById('login-pass')) {
                     document.getElementById('dynamic-auth-area').innerHTML = `<input type="password" id="login-pass" class="form-input" style="margin-top:10px;" placeholder="Digite sua senha">`;
-                    document.getElementById('btn-auth').innerText = "Entrar"; 
-                    document.getElementById('btn-auth').onclick = confirmarLogin;
+                    const btn = document.getElementById('btn-auth');
+                    btn.innerText = "Entrar"; 
+                    btn.onclick = () => confirmarLogin(phoneClean);
                 }
             } else {
+                // Usuário Novo
                 document.getElementById('step-login').classList.remove('active');
                 document.getElementById('step-cadastro').classList.add('active');
             }
         }
 
-        function confirmarLogin() {
-            const phone = document.getElementById('login-phone').value;
+        function confirmarLogin(phoneClean) {
             const pass = document.getElementById('login-pass').value;
-            if(dbUsers[phone].senha === pass) {
-                usuarioLogado = dbUsers[phone];
+            if(dbUsers[phoneClean].senha === pass) {
+                usuarioLogado = dbUsers[phoneClean];
                 localStorage.setItem('session_user_familia', JSON.stringify(usuarioLogado));
                 document.getElementById('step-login').classList.remove('active');
                 document.getElementById('step-pagamento').classList.add('active');
@@ -640,12 +659,13 @@
 
         function identificarZona(bairro) {
             const b = bairro.toLowerCase();
-            let zona = "Fora da Área";
-            if(b.includes('sul') || b.includes('floresta') || b.includes('jatuarana') || b.includes('conceição')) zona = "Zona Sul";
+            let zona = "";
+            if(b.includes('sul') || b.includes('floresta') || b.includes('jatuarana')) zona = "Zona Sul";
             else if (b.includes('leste') || b.includes('tancredo') || b.includes('jk')) zona = "Zona Leste";
             else if (b.includes('norte') || b.includes('nacional')) zona = "Zona Norte";
             else if (b.includes('centro') || b.includes('olaria')) zona = "Centro";
-            document.getElementById('reg-zona').value = zona;
+            
+            if(zona) document.getElementById('reg-zona').value = zona;
         }
 
         function finalizarCadastro() {
@@ -656,12 +676,14 @@
             const bairro = document.getElementById('reg-bairro').value;
             const num = document.getElementById('reg-numero').value;
             const zona = document.getElementById('reg-zona').value;
-            const phone = document.getElementById('login-phone').value;
+            const phoneMasked = document.getElementById('login-phone').value;
+            const phoneClean = phoneMasked.replace(/\D/g, ''); 
 
-            if(!nome || !senha || !rua || !num) return alert("Preencha todos os campos!");
+            if(!nome || !senha || !rua || !num || !zona) return alert("Preencha todos os campos e escolha a zona!");
 
-            const novoUser = { telefone: phone, nome, senha, zona, endereco: `${rua}, ${num} - ${bairro}, CEP: ${cep}` };
-            dbUsers[phone] = novoUser;
+            const novoUser = { telefone: phoneMasked, nome, senha, zona, endereco: `${rua}, ${num} - ${bairro} (${zona})` };
+            
+            dbUsers[phoneClean] = novoUser; // Chave é o numero limpo
             localStorage.setItem('db_users_familia', JSON.stringify(dbUsers));
             usuarioLogado = novoUser;
             localStorage.setItem('session_user_familia', JSON.stringify(usuarioLogado));
@@ -679,8 +701,8 @@
         function irParaRevisao() {
             if(!formaPagamento) return alert("Selecione o pagamento");
             
-            // Lógica de Frete Zona Sul
-            valorFrete = (usuarioLogado.zona === 'Zona Sul') ? 0.00 : 15.00;
+            // Regra de Frete Zona Sul
+            let valorFrete = (usuarioLogado.zona === 'Zona Sul') ? 0.00 : 15.00;
 
             const container = document.getElementById('resumo-itens');
             container.innerHTML = "";
@@ -702,14 +724,13 @@
 
         function editarEndereco() {
             document.getElementById('step-revisao').classList.remove('active');
-            // Preenche os campos se possível
             document.getElementById('reg-nome').value = usuarioLogado.nome;
-            // Volta para cadastro
             document.getElementById('step-cadastro').classList.add('active');
         }
 
         function finalizarNoWhatsApp() {
             const numMercado = "5569992557719"; 
+            let valorFrete = (usuarioLogado.zona === 'Zona Sul') ? 0.00 : 15.00;
             let msg = `*NOVO PEDIDO - SITE* 🛍️\n--------------------------------\n👤 *Cliente:* ${usuarioLogado.nome}\n📱 *Tel:* ${usuarioLogado.telefone}\n📍 *Entrega:* ${usuarioLogado.endereco}\n🗺️ *Região:* ${usuarioLogado.zona}\n--------------------------------\n\n*ITENS:*\n`;
             let subtotal = 0;
             cart.forEach(i => { 
@@ -722,7 +743,12 @@
             window.open(`https://wa.me/${numMercado}?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
-        window.onload = () => { carregarProdutos(); updateCartUI(); };
+        window.onload = () => { 
+            carregarProdutos(); 
+            updateCartUI();
+            const sessao = localStorage.getItem('session_user_familia');
+            if(sessao) usuarioLogado = JSON.parse(sessao);
+        };
     </script>
 </body>
 </html>
