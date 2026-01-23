@@ -1,47 +1,36 @@
-'use client'; // Necessário para saber em qual rota estamos
+'use client';
 
-import { Home, Heart, List, User } from 'lucide-react';
+import { Home, Search, Heart, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import clsx from 'clsx'; // Ajuda a combinar classes CSS condicionalmente
 
 export default function BottomNav() {
   const pathname = usePathname();
 
-  // Função auxiliar para verificar se o link está ativo
-  const isActive = (path: string) => pathname === path;
-
-  // Classe base para os itens do menu
-  const linkBaseClass = "flex flex-col items-center gap-1 transition";
+  const navItems = [
+    { name: 'Início', icon: Home, path: '/' },
+    { name: 'Buscar', icon: Search, path: '/depts' }, // Ajustei para depts ou busca
+    { name: 'Favoritos', icon: Heart, path: '/favoritos' },
+    { name: 'Perfil', icon: User, path: '/perfil' },
+  ];
 
   return (
-    <nav className="fixed bottom-0 w-full bg-white border-t border-gray-100 py-2 px-6 flex justify-between items-end z-40 pb-4 safe-area-bottom shadow-[0_-1px_3px_rgba(0,0,0,0.05)]">
-      
-      {/* Item: Início */}
-      <Link href="/" className={clsx(linkBaseClass, isActive('/') ? "text-orange-500" : "text-gray-400 hover:text-gray-600")}>
-        {/* Usamos fill-current apenas se estiver ativo para dar o efeito de preenchido */}
-        <Home className={clsx("w-6 h-6", isActive('/') && "fill-current")} /> 
-        <span className="text-[10px] font-medium">Início</span>
-      </Link>
-
-      {/* Item: Favoritos */}
-      <Link href="/favoritos" className={clsx(linkBaseClass, isActive('/favoritos') ? "text-orange-500" : "text-gray-400 hover:text-gray-600")}>
-        <Heart className={clsx("w-6 h-6", isActive('/favoritos') && "fill-current")} />
-        <span className="text-[10px] font-medium">Favoritos</span>
-      </Link>
-
-      {/* Item: Depts */}
-      <Link href="/depts" className={clsx(linkBaseClass, isActive('/depts') ? "text-orange-500" : "text-gray-400 hover:text-gray-600")}>
-        <List className="w-6 h-6" />
-        <span className="text-[10px] font-medium">Depts</span>
-      </Link>
-
-      {/* Item: Perfil */}
-      <Link href="/perfil" className={clsx(linkBaseClass, isActive('/perfil') ? "text-orange-500" : "text-gray-400 hover:text-gray-600")}>
-        <User className={clsx("w-6 h-6", isActive('/perfil') && "fill-current")} />
-        <span className="text-[10px] font-medium">Perfil</span>
-      </Link>
-
+    <nav className="w-full bg-white flex justify-around items-center py-3">
+      {navItems.map((item) => {
+        const isActive = pathname === item.path;
+        return (
+          <Link 
+            key={item.name} 
+            href={item.path}
+            className={`flex flex-col items-center gap-1 transition-all duration-300 ${
+              isActive ? 'text-orange-500 scale-105' : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            <item.icon className={`w-6 h-6 ${isActive ? 'fill-current' : ''}`} strokeWidth={isActive ? 2.5 : 2} />
+            <span className="text-[10px] font-medium">{item.name}</span>
+          </Link>
+        );
+      })}
     </nav>
   );
 }
