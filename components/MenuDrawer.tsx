@@ -1,6 +1,6 @@
 'use client';
 
-import { X, MapPin, Phone, MessageSquare, ExternalLink, Clock, Bike, Download, ChevronRight } from 'lucide-react';
+import { X, MapPin, Phone, MessageSquare, ExternalLink, Clock, Bike, Download, ChevronRight, FileText } from 'lucide-react';
 import { useEffect } from 'react';
 import Link from 'next/link';
 
@@ -48,7 +48,7 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
 
         <div className="flex-1 overflow-y-auto py-6 px-4 space-y-6 bg-gray-50">
           
-          {/* --- NOVO BOTÃO DESTAQUE DE INSTALAÇÃO --- */}
+          {/* Botão Destaque App */}
           <Link 
             href="/tutorial"
             onClick={onClose}
@@ -101,6 +101,26 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
                 <span>(69) 99255-7719</span>
              </div>
           </div>
+
+          {/* NOVO LINK DE POLÍTICAS */}
+          <Link 
+            href="/politicas" 
+            onClick={onClose}
+            className="block bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:border-orange-300 transition group"
+          >
+             <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                   <div className="bg-blue-50 p-2 rounded-lg text-blue-600 group-hover:bg-orange-50 group-hover:text-orange-600 transition">
+                      <FileText className="w-5 h-5" />
+                   </div>
+                   <div>
+                      <h3 className="font-bold text-gray-800">Termos e Políticas</h3>
+                      <p className="text-xs text-gray-500">Privacidade, Trocas e Regras</p>
+                   </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-300" />
+             </div>
+          </Link>
 
           <Link 
             href="/sugestoes" 

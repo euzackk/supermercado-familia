@@ -5,7 +5,7 @@ import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { calculateShipping } from '@/lib/shipping';
-import { MapPin, CreditCard, Send, ArrowLeft, Truck, AlertTriangle, Clock } from 'lucide-react';
+import { MapPin, CreditCard, Send, ArrowLeft, Truck, AlertTriangle, Clock, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function CheckoutPage() {
@@ -18,29 +18,27 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState('PIX');
   const [loading, setLoading] = useState(true);
   
-  // Estado para controle de horário
   const [isDeliveryOpen, setIsDeliveryOpen] = useState(false);
 
+  // Valor Mínimo Configurado
+  const MIN_ORDER_VALUE = 30;
+
   useEffect(() => {
-    // Verifica Horário de Funcionamento
+    // Verifica Horário
     const now = new Date();
-    const day = now.getDay(); // 0 = Domingo, 1 = Segunda...
+    const day = now.getDay(); 
     const hour = now.getHours();
 
-    // Regras:
-    // Domingo (0): 7h às 11h (fecha às 11:00 em ponto)
-    // Seg-Sáb (1-6): 7h às 19h (fecha às 19:00 em ponto)
     let isOpen = false;
-
     if (day === 0) { // Domingo
       if (hour >= 7 && hour < 11) isOpen = true;
-    } else { // Segunda a Sábado
+    } else { // Seg-Sáb
       if (hour >= 7 && hour < 19) isOpen = true;
     }
     
     setIsDeliveryOpen(isOpen);
 
-    // Busca dados do usuário
+    // Busca Endereços
     async function fetchUserData() {
       if (user) {
         const { data } = await supabase.from('addresses').select('*').eq('user_id', user.id);
@@ -61,13 +59,22 @@ export default function CheckoutPage() {
     : { price: 0, label: 'A calcular' };
 
   const finalTotal = cartTotal + shippingInfo.price;
+  
+  // Verifica se atingiu o mínimo
+  const isMinimumMet = cartTotal >= MIN_ORDER_VALUE;
 
   const handleFinalize = () => {
-    // Bloqueio extra no clique
+    // 1. Bloqueio de Horário
     if (!isDeliveryOpen) {
       alert("As entregas estão fechadas no momento.");
       return;
     }
+    // 2. Bloqueio de Valor Mínimo
+    if (!isMinimumMet) {
+      alert(`O pedido mínimo é de R$ ${MIN_ORDER_VALUE},00. Adicione mais itens!`);
+      return;
+    }
+    // 3. Bloqueio de Endereço
     if (!selectedAddress) {
       alert("Por favor, selecione ou cadastre um endereço!");
       return;
@@ -124,7 +131,6 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-40">
       
-      {/* Topo Azul */}
       <div className="bg-blue-900 text-white p-6 pb-12 rounded-b-[2.5rem] shadow-lg relative z-10">
         <div className="flex items-center gap-3 mb-4">
             <button onClick={() => router.back()} className="bg-white/20 p-2 rounded-full hover:bg-white/30 transition">
@@ -146,19 +152,34 @@ export default function CheckoutPage() {
 
       <div className="p-4 -mt-8 relative z-20 space-y-4">
         
-        {/* AVISO DE FECHADO (Se for o caso) */}
-        {!isDeliveryOpen && (
-           <div className="bg-red-50 border border-red-200 p-4 rounded-xl flex items-start gap-3 animate-in slide-in-from-top-2">
-              <Clock className="w-6 h-6 text-red-500 shrink-0" />
+        {/* AVISO DE VALOR MÍNIMO (Se não atingiu) */}
+        {!isMinimumMet && (
+           <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl flex items-start gap-3 animate-pulse">
+              <AlertCircle className="w-6 h-6 text-orange-500 shrink-0" />
               <div>
-                 <h3 className="font-bold text-red-700">Entregas Encerradas</h3>
-                 <p className="text-sm text-red-600">
-                    O delivery funciona Seg-Sáb (07h-19h) e Dom (07h-11h). Você pode montar o carrinho, mas só conseguirá enviar amanhã.
+                 <h3 className="font-bold text-orange-800">Valor Mínimo não atingido</h3>
+                 <p className="text-sm text-orange-700">
+                    Faltam <strong>R$ {(MIN_ORDER_VALUE - cartTotal).toFixed(2).replace('.', ',')}</strong> para o pedido mínimo de R$ 30,00.
                  </p>
               </div>
            </div>
         )}
 
+        {/* AVISO DE FECHADO */}
+        {!isDeliveryOpen && (
+           <div className="bg-red-50 border border-red-200 p-4 rounded-xl flex items-start gap-3">
+              <Clock className="w-6 h-6 text-red-500 shrink-0" />
+              <div>
+                 <h3 className="font-bold text-red-700">Entregas Encerradas</h3>
+                 <p className="text-sm text-red-600">
+                    O delivery funciona Seg-Sáb (07h-19h) e Dom (07h-11h).
+                 </p>
+              </div>
+           </div>
+        )}
+
+        {/* ... Resto do layout igual (Endereço, Pagamento, Resumo) ... */}
+        
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
             <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
                 <MapPin className="text-orange-500 w-5 h-5"/> Onde entregar?
@@ -236,7 +257,6 @@ export default function CheckoutPage() {
                     <span className="text-gray-800 font-bold">R$ {shippingInfo.price.toFixed(2).replace('.', ',')}</span>
                 )}
             </div>
-            {shippingInfo.price > 0 && <p className="text-[10px] text-gray-400 text-right">{shippingInfo.label}</p>}
             
             <div className="border-t border-gray-100 pt-3 mt-2 flex justify-between items-center">
                 <span className="font-bold text-lg text-blue-900">Total</span>
@@ -248,15 +268,20 @@ export default function CheckoutPage() {
       <div className="fixed bottom-0 left-0 w-full bg-white p-4 border-t shadow-[0_-5px_20px_rgba(0,0,0,0.05)] z-50">
         <button 
             onClick={handleFinalize}
-            disabled={!selectedAddress || !isDeliveryOpen} 
+            disabled={!selectedAddress || !isDeliveryOpen || !isMinimumMet} 
             className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg transition active:scale-[0.98] ${
-                (!selectedAddress || !isDeliveryOpen)
+                (!selectedAddress || !isDeliveryOpen || !isMinimumMet)
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
                 : 'bg-green-600 text-white hover:bg-green-700 shadow-green-200'
             }`}
         >
             {isDeliveryOpen ? <Send className="w-5 h-5"/> : <Clock className="w-5 h-5"/>}
-            {isDeliveryOpen ? "Finalizar no WhatsApp" : "Entrega Fechada Agora"}
+            {/* Lógica de Texto do Botão */}
+            {!isDeliveryOpen 
+                ? "Entrega Fechada" 
+                : !isMinimumMet 
+                    ? `Mínimo R$ ${MIN_ORDER_VALUE},00` 
+                    : "Finalizar no WhatsApp"}
         </button>
       </div>
 
