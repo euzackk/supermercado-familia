@@ -1,6 +1,6 @@
 'use client';
 
-import { X, MapPin, Phone, MessageSquare, ExternalLink, Clock, Bike } from 'lucide-react'; // Adicionei Bike
+import { X, MapPin, Phone, MessageSquare, ExternalLink, Clock, Bike, Download, ChevronRight } from 'lucide-react';
 import { useEffect } from 'react';
 import Link from 'next/link';
 
@@ -32,6 +32,7 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
 
       <div className={`relative w-[85%] max-w-xs bg-white h-full shadow-2xl flex flex-col transition-transform duration-300 ease-out transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         
+        {/* Cabeçalho do Menu */}
         <div className="bg-blue-900 p-6 pt-12 text-white relative overflow-hidden">
           <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
           
@@ -47,16 +48,36 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
 
         <div className="flex-1 overflow-y-auto py-6 px-4 space-y-6 bg-gray-50">
           
+          {/* --- NOVO BOTÃO DESTAQUE DE INSTALAÇÃO --- */}
+          <Link 
+            href="/tutorial"
+            onClick={onClose}
+            className="block relative overflow-hidden rounded-xl shadow-lg shadow-orange-200 group"
+          >
+             <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-600 transition-transform group-hover:scale-105" />
+             <div className="relative p-4 flex items-center justify-between text-white">
+                <div className="flex items-center gap-3">
+                   <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                      <Download className="w-6 h-6 text-white" />
+                   </div>
+                   <div>
+                      <h3 className="font-bold text-lg leading-none mb-1">Baixar o App</h3>
+                      <p className="text-xs text-orange-100 opacity-90">Instale no seu celular</p>
+                   </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-white/70" />
+             </div>
+          </Link>
+
+          {/* Informações */}
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-4">
              <h3 className="font-bold text-gray-800 border-b border-gray-100 pb-2">Informações</h3>
              
-             {/* Endereço Atualizado */}
              <div className="flex gap-3 items-start text-sm text-gray-600">
                 <MapPin className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
                 <span>R. Principal, 1675<br/>Novo Horizonte<br/>Porto Velho - RO, 76810-160</span>
              </div>
              
-             {/* Horário da LOJA */}
              <div className="flex gap-3 items-start text-sm text-gray-600">
                 <Clock className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
                 <div>
@@ -66,7 +87,6 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
                 </div>
              </div>
 
-             {/* Horário do DELIVERY */}
              <div className="flex gap-3 items-start text-sm text-gray-600">
                 <Bike className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
                 <div>
