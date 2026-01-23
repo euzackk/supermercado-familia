@@ -1,8 +1,7 @@
 'use client';
 
-import { X, MapPin, Phone, MessageSquare, ExternalLink, Mail, Clock } from 'lucide-react';
+import { X, MapPin, Phone, MessageSquare, ExternalLink, Clock, Bike } from 'lucide-react'; // Adicionei Bike
 import { useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 
 interface MenuDrawerProps {
@@ -12,7 +11,6 @@ interface MenuDrawerProps {
 
 export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
   
-  // Fecha com ESC
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
@@ -27,18 +25,14 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
   return (
     <div className={`fixed inset-0 z-50 flex justify-start ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
       
-      {/* Fundo Escuro (clique fecha) */}
       <div 
         className={`fixed inset-0 bg-black/60 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`} 
         onClick={onClose}
       />
 
-      {/* Painel Lateral (Vem da Esquerda) */}
       <div className={`relative w-[85%] max-w-xs bg-white h-full shadow-2xl flex flex-col transition-transform duration-300 ease-out transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         
-        {/* Cabeçalho do Menu */}
         <div className="bg-blue-900 p-6 pt-12 text-white relative overflow-hidden">
-          {/* Círculo decorativo */}
           <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
           
           <button onClick={onClose} className="absolute top-4 right-4 text-white/80 hover:text-white hover:bg-white/20 p-1 rounded-full transition">
@@ -51,21 +45,35 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
           </div>
         </div>
 
-        {/* Conteúdo com Scroll */}
-        <div className="flex-1 overflow-y-auto py-6 px-4 space-y-8 bg-gray-50">
+        <div className="flex-1 overflow-y-auto py-6 px-4 space-y-6 bg-gray-50">
           
-          {/* Seção 1: Informações */}
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-4">
              <h3 className="font-bold text-gray-800 border-b border-gray-100 pb-2">Informações</h3>
              
+             {/* Endereço Atualizado */}
              <div className="flex gap-3 items-start text-sm text-gray-600">
-                <MapPin className="w-5 h-5 text-orange-500 shrink-0" />
-                <span>Rua Exemplo, 1234<br/>Bairro Esperança, Porto Velho - RO</span>
+                <MapPin className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+                <span>R. Principal, 1675<br/>Novo Horizonte<br/>Porto Velho - RO, 76810-160</span>
              </div>
              
-             <div className="flex gap-3 items-center text-sm text-gray-600">
-                <Clock className="w-5 h-5 text-orange-500 shrink-0" />
-                <span>Seg à Sáb: 07h às 20h<br/>Dom: 07h às 13h</span>
+             {/* Horário da LOJA */}
+             <div className="flex gap-3 items-start text-sm text-gray-600">
+                <Clock className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-gray-800">Loja Física:</span>
+                  <p className="text-xs">Seg à Sáb: 06h às 20h</p>
+                  <p className="text-xs">Domingo: 06h às 12h</p>
+                </div>
+             </div>
+
+             {/* Horário do DELIVERY */}
+             <div className="flex gap-3 items-start text-sm text-gray-600">
+                <Bike className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-gray-800">Entregas:</span>
+                  <p className="text-xs">Seg à Sáb: 07h às 19h</p>
+                  <p className="text-xs">Domingo: 07h às 11h</p>
+                </div>
              </div>
 
              <div className="flex gap-3 items-center text-sm text-gray-600">
@@ -74,7 +82,6 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
              </div>
           </div>
 
-          {/* Seção 2: Sugestões */}
           <Link 
             href="/sugestoes" 
             onClick={onClose}
@@ -94,11 +101,9 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
              </div>
           </Link>
 
-          {/* Seção 3: Redes Sociais */}
           <div className="text-center">
              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Siga-nos nas redes</p>
              <div className="flex justify-center gap-4">
-                {/* Facebook */}
                 <a 
                   href={facebookLink} 
                   target="_blank" 
@@ -108,7 +113,6 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
                   <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036c-2.148 0-2.971.747-2.971 2.54v1.43h5.114l-.257 3.666h-4.857v7.98h-4.8z"/></svg>
                 </a>
 
-                {/* Instagram */}
                 <a 
                   href={instagramLink} 
                   target="_blank" 
@@ -122,9 +126,8 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
 
         </div>
         
-        {/* Rodapé do Menu */}
         <div className="p-4 bg-gray-100 text-center text-[10px] text-gray-400">
-           App Versão 1.0.0
+           App Versão 1.1.0
         </div>
       </div>
     </div>

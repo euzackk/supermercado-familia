@@ -5,7 +5,7 @@ import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { calculateShipping } from '@/lib/shipping';
-import { MapPin, CreditCard, Send, ArrowLeft, Truck, AlertTriangle } from 'lucide-react';
+import { MapPin, CreditCard, Send, ArrowLeft, Truck, AlertTriangle, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function CheckoutPage() {
@@ -17,15 +17,36 @@ export default function CheckoutPage() {
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState('PIX');
   const [loading, setLoading] = useState(true);
+  
+  // Estado para controle de horário
+  const [isDeliveryOpen, setIsDeliveryOpen] = useState(false);
 
-  // Busca endereços ao carregar
   useEffect(() => {
+    // Verifica Horário de Funcionamento
+    const now = new Date();
+    const day = now.getDay(); // 0 = Domingo, 1 = Segunda...
+    const hour = now.getHours();
+
+    // Regras:
+    // Domingo (0): 7h às 11h (fecha às 11:00 em ponto)
+    // Seg-Sáb (1-6): 7h às 19h (fecha às 19:00 em ponto)
+    let isOpen = false;
+
+    if (day === 0) { // Domingo
+      if (hour >= 7 && hour < 11) isOpen = true;
+    } else { // Segunda a Sábado
+      if (hour >= 7 && hour < 19) isOpen = true;
+    }
+    
+    setIsDeliveryOpen(isOpen);
+
+    // Busca dados do usuário
     async function fetchUserData() {
       if (user) {
         const { data } = await supabase.from('addresses').select('*').eq('user_id', user.id);
         if (data && data.length > 0) {
           setAddresses(data);
-          setSelectedAddressId(data[0].id); // Seleciona o primeiro automaticamente
+          setSelectedAddressId(data[0].id);
         }
       }
       setLoading(false);
@@ -33,10 +54,8 @@ export default function CheckoutPage() {
     fetchUserData();
   }, [user]);
 
-  // Encontra o objeto do endereço selecionado
   const selectedAddress = addresses.find(a => a.id === selectedAddressId);
   
-  // Calcula Frete (Proteção: se não tiver endereço, preço é 0)
   const shippingInfo = selectedAddress 
     ? calculateShipping(selectedAddress.district) 
     : { price: 0, label: 'A calcular' };
@@ -44,20 +63,22 @@ export default function CheckoutPage() {
   const finalTotal = cartTotal + shippingInfo.price;
 
   const handleFinalize = () => {
+    // Bloqueio extra no clique
+    if (!isDeliveryOpen) {
+      alert("As entregas estão fechadas no momento.");
+      return;
+    }
     if (!selectedAddress) {
       alert("Por favor, selecione ou cadastre um endereço!");
       return;
     }
 
-    const phone = "5569992557719"; // Seu número
+    const phone = "5569992557719"; 
     const userName = user?.user_metadata?.full_name || "Cliente";
-    
-    // Data e Hora do Pedido
     const now = new Date();
     const dateStr = now.toLocaleDateString('pt-BR');
     const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-    // --- MENSAGEM INTELIGENTE ---
     let message = `🧾 *PEDIDO REALIZADO - SUPERMERCADO FAMÍLIA*\n`;
     message += `📅 ${dateStr} às ${timeStr}\n`;
     message += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
@@ -71,7 +92,6 @@ export default function CheckoutPage() {
     message += `Cidade: ${selectedAddress.city} - ${selectedAddress.uf || 'RO'}\n`;
     if (selectedAddress.complement) message += `Comp: ${selectedAddress.complement}\n`;
     
-    // Link do Maps para ajudar o entregador
     const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${selectedAddress.street}, ${selectedAddress.number}, ${selectedAddress.city}`)}`;
     message += `🗺️ *Ver no Mapa:* ${mapLink}\n\n`;
 
@@ -93,7 +113,6 @@ export default function CheckoutPage() {
     message += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
     message += `Aguardo a confirmação do pedido!`;
 
-    // Envia e limpa
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     clearCart();
     window.open(url, '_blank');
@@ -103,9 +122,9 @@ export default function CheckoutPage() {
   if (items.length === 0) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-40"> {/* Aumentei o padding inferior para pb-40 */}
+    <div className="min-h-screen bg-gray-50 pb-40">
       
-      {/* Topo Azul Estiloso */}
+      {/* Topo Azul */}
       <div className="bg-blue-900 text-white p-6 pb-12 rounded-b-[2.5rem] shadow-lg relative z-10">
         <div className="flex items-center gap-3 mb-4">
             <button onClick={() => router.back()} className="bg-white/20 p-2 rounded-full hover:bg-white/30 transition">
@@ -127,7 +146,19 @@ export default function CheckoutPage() {
 
       <div className="p-4 -mt-8 relative z-20 space-y-4">
         
-        {/* Card de Endereço Inteligente */}
+        {/* AVISO DE FECHADO (Se for o caso) */}
+        {!isDeliveryOpen && (
+           <div className="bg-red-50 border border-red-200 p-4 rounded-xl flex items-start gap-3 animate-in slide-in-from-top-2">
+              <Clock className="w-6 h-6 text-red-500 shrink-0" />
+              <div>
+                 <h3 className="font-bold text-red-700">Entregas Encerradas</h3>
+                 <p className="text-sm text-red-600">
+                    O delivery funciona Seg-Sáb (07h-19h) e Dom (07h-11h). Você pode montar o carrinho, mas só conseguirá enviar amanhã.
+                 </p>
+              </div>
+           </div>
+        )}
+
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
             <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
                 <MapPin className="text-orange-500 w-5 h-5"/> Onde entregar?
@@ -171,7 +202,6 @@ export default function CheckoutPage() {
             )}
         </div>
 
-        {/* Card de Pagamento */}
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
             <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
                 <CreditCard className="text-green-600 w-5 h-5"/> Pagamento
@@ -193,7 +223,6 @@ export default function CheckoutPage() {
             </div>
         </div>
 
-        {/* Resumo de Valores */}
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-2">
             <div className="flex justify-between text-sm text-gray-600">
                 <span>Subtotal</span>
@@ -216,19 +245,18 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      {/* Botão Flutuante CORRIGIDO (z-50) */}
       <div className="fixed bottom-0 left-0 w-full bg-white p-4 border-t shadow-[0_-5px_20px_rgba(0,0,0,0.05)] z-50">
         <button 
             onClick={handleFinalize}
-            disabled={!selectedAddress}
+            disabled={!selectedAddress || !isDeliveryOpen} 
             className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg transition active:scale-[0.98] ${
-                !selectedAddress 
+                (!selectedAddress || !isDeliveryOpen)
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
                 : 'bg-green-600 text-white hover:bg-green-700 shadow-green-200'
             }`}
         >
-            <Send className="w-5 h-5"/>
-            Finalizar no WhatsApp
+            {isDeliveryOpen ? <Send className="w-5 h-5"/> : <Clock className="w-5 h-5"/>}
+            {isDeliveryOpen ? "Finalizar no WhatsApp" : "Entrega Fechada Agora"}
         </button>
       </div>
 

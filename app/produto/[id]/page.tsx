@@ -21,7 +21,6 @@ export default function ProductPage() {
   const router = useRouter();
   const { addToCart } = useCart();
   
-  // Tenta pegar o contexto de favoritos, mas previne erro se não existir
   const favoritesContext = useFavorites();
   const toggleFavorite = favoritesContext?.toggleFavorite;
   const isFavorite = favoritesContext?.isFavorite;
@@ -49,17 +48,13 @@ export default function ProductPage() {
 
   const handleAddToCart = () => {
     setAdding(true);
-    // Adiciona o item X vezes baseado na quantidade escolhida
     for (let i = 0; i < qty; i++) {
       addToCart(product);
     }
-    
-    // Pequeno feedback visual
     setTimeout(() => setAdding(false), 500);
   };
 
   const handleBack = () => {
-    // Tenta voltar, se não der (ex: abriu direto no link), vai para home
     if (window.history.length > 1) {
       router.back();
     } else {
@@ -87,10 +82,7 @@ export default function ProductPage() {
   return (
     <div className="min-h-screen bg-white pb-32">
       
-      {/* --- HEADER DE NAVEGAÇÃO --- */}
       <div className="fixed top-0 w-full p-4 flex justify-between items-center z-20 pointer-events-none">
-        
-        {/* Botão Voltar */}
         <button 
           onClick={handleBack} 
           className="pointer-events-auto bg-white/90 backdrop-blur shadow-sm p-2.5 rounded-full text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition active:scale-95 border border-gray-100"
@@ -98,7 +90,6 @@ export default function ProductPage() {
           <ArrowLeft className="w-6 h-6" />
         </button>
 
-        {/* Botão Ver Departamentos (Direita) */}
         <Link 
           href="/depts"
           className="pointer-events-auto bg-white/90 backdrop-blur shadow-sm px-4 py-2.5 rounded-full text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition active:scale-95 border border-gray-100 flex items-center gap-2 text-xs font-bold uppercase tracking-wide"
@@ -107,7 +98,6 @@ export default function ProductPage() {
         </Link>
       </div>
 
-      {/* --- IMAGEM DO PRODUTO --- */}
       <div className="w-full h-[45vh] bg-gray-50 flex items-center justify-center p-8 relative">
         {product.image_url ? (
           <img 
@@ -123,10 +113,8 @@ export default function ProductPage() {
         )}
       </div>
 
-      {/* --- DETALHES (CARD QUE SOBE) --- */}
       <div className="-mt-8 bg-white rounded-t-[2.5rem] relative z-10 px-6 py-8 min-h-[50vh] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] border-t border-gray-100">
         
-        {/* Barra decorativa */}
         <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-8" />
         
         <div className="flex justify-between items-start gap-4">
@@ -139,7 +127,6 @@ export default function ProductPage() {
             </h1>
           </div>
 
-          {/* Botão Favoritar Grande */}
           <button 
             onClick={() => toggleFavorite && toggleFavorite(product)}
             className="flex-shrink-0 p-3 rounded-full bg-gray-50 hover:bg-red-50 transition active:scale-90"
@@ -150,7 +137,6 @@ export default function ProductPage() {
           </button>
         </div>
         
-        {/* Preço */}
         <div className="mt-6 flex items-baseline gap-1">
           <span className="text-sm font-medium text-gray-400">R$</span>
           <span className="text-4xl font-extrabold text-gray-900 tracking-tight">
@@ -159,20 +145,37 @@ export default function ProductPage() {
           <span className="text-sm font-medium text-gray-400">/unidade</span>
         </div>
 
-        {/* Descrição */}
         <div className="mt-8">
           <h3 className="text-sm font-bold text-gray-900 mb-2">Sobre o produto</h3>
           <p className="text-gray-500 leading-relaxed text-sm">
             {product.description || "Este é um produto de excelente qualidade selecionado especialmente para você. Aproveite as melhores ofertas do nosso supermercado com entrega rápida e segura."}
           </p>
         </div>
+
+        {/* --- BOTÃO EXTRA VISÍVEL NO MEIO DA TELA --- */}
+        <div className="mt-8 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <span className="font-bold text-gray-700">Quantidade</span>
+             <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-2 py-1">
+                <button onClick={() => setQty(q => Math.max(1, q - 1))} className="p-2 text-gray-500"><Minus className="w-4 h-4"/></button>
+                <span className="font-bold w-4 text-center">{qty}</span>
+                <button onClick={() => setQty(q => q + 1)} className="p-2 text-gray-500"><Plus className="w-4 h-4"/></button>
+             </div>
+          </div>
+          <button 
+            onClick={handleAddToCart}
+            className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition active:scale-95 ${
+               adding ? 'bg-green-600 text-white' : 'bg-orange-500 text-white hover:bg-orange-600'
+            }`}
+          >
+             {adding ? "Adicionado!" : "Adicionar ao Carrinho"}
+          </button>
+        </div>
       </div>
 
-      {/* --- BARRA FIXA DE COMPRA (BOTTOM) --- */}
+      {/* --- BARRA FIXA DE COMPRA (Rodapé) --- */}
       <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 p-4 pb-safe z-30 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
         <div className="flex gap-4 max-w-md mx-auto">
-          
-          {/* Seletor de Quantidade */}
           <div className="flex items-center gap-3 bg-gray-100 rounded-2xl px-4 py-2">
             <button 
               onClick={() => setQty(q => Math.max(1, q - 1))} 
@@ -190,7 +193,6 @@ export default function ProductPage() {
             </button>
           </div>
           
-          {/* Botão Adicionar */}
           <button 
             onClick={handleAddToCart}
             disabled={adding}
