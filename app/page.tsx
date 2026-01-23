@@ -1,84 +1,90 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, X, Loader2 } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import ProductCard from '@/components/ProductCard';
-import EmptyState from '@/components/EmptyState';
-
-// Tipos
-type Product = {
-  id: number;
-  name: string;
-  price: number;
-  department: string;
-  image_url?: string;
-};
+import ProductCarousel from '@/components/ProductCarousel';
+import Link from 'next/link';
 
 export default function HomePage() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [groupedProducts, setGroupedProducts] = useState<Record<string, any[]>>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
-  async function fetchProducts(term: string) {
-    setLoading(true);
-    try {
-      let query = supabase.from('products').select('*').limit(50);
-      if (term) query = query.ilike('name', `%${term}%`);
-      const { data, error } = await query;
-      if (error) throw error;
-      setProducts(data || []);
-    } catch (error) {
-      console.error('Erro:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
+  // Busca produtos e agrupa por departamento
   useEffect(() => {
-    const delayDebounce = setTimeout(() => { fetchProducts(searchTerm); }, 500);
-    return () => clearTimeout(delayDebounce);
-  }, [searchTerm]);
+    async function fetchData() {
+      setLoading(true);
+      try {
+        // Buscamos 200 produtos para ter variedade
+        const { data, error } = await supabase.from('products').select('*').limit(200);
+        if (error) throw error;
+
+        // Agrupamento manual via Javascript
+        const groups: Record<string, any[]> = {};
+        data?.forEach((prod) => {
+          const dept = prod.department || 'Outros';
+          if (!groups[dept]) groups[dept] = [];
+          // Limitamos a 6 produtos por carrossel na home
+          if (groups[dept].length < 6) {
+            groups[dept].push(prod);
+          }
+        });
+
+        setGroupedProducts(groups);
+      } catch (error) {
+        console.error('Erro ao buscar:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  // Função para criar URL amigável (slug)
+  const slugify = (text: string) => 
+    text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
 
   return (
-    <div className="flex-1 flex flex-col px-4 pt-4 pb-24 overflow-y-auto bg-white">
+    <div className="flex-1 flex flex-col bg-white pb-24 overflow-y-auto">
       
-      {/* Barra de Busca - Visual levemente melhorado */}
-      <div className="sticky top-0 bg-white z-10 py-2">
-        <div className="relative w-full">
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-            <Search className="w-5 h-5" />
-          </div>
+      {/* Busca (Apenas visual, leva para página de busca se quiser implementar depois) */}
+      <div className="sticky top-0 bg-white z-20 px-4 py-3 shadow-sm border-b border-gray-100">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input 
             type="text" 
-            placeholder="O que você procura hoje?"
-            value={searchTerm}
+            placeholder="O que você precisa?"
+            className="w-full bg-gray-100 rounded-full py-2.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-orange-200 outline-none transition"
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-10 text-gray-700 outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-300 transition-all shadow-sm"
           />
-          {searchTerm && (
-            <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 p-1 hover:text-gray-600">
-              <X className="w-4 h-4" />
-            </button>
-          )}
         </div>
       </div>
 
-      {/* Grid de Produtos */}
       {loading ? (
-        <div className="flex-1 flex flex-col justify-center items-center mt-20 gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
-            <p className="text-sm text-gray-400">Carregando ofertas...</p>
-        </div>
-      ) : products.length > 0 ? (
-        // Grid ajustado: gap-3 para mobile, gap-4 para telas maiores
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 mt-4 animate-in fade-in duration-500">
-          {products.map((prod) => (
-            <ProductCard key={prod.id} product={prod} />
-          ))}
+        <div className="flex justify-center mt-20">
+          <Loader2 className="animate-spin text-orange-500 w-8 h-8" />
         </div>
       ) : (
-        <EmptyState />
+        <div className="space-y-2 mt-2">
+          {/* Se tiver busca, exibe mensagem simples (ou implemente filtro aqui) */}
+          {searchTerm ? (
+             <div className="p-8 text-center text-gray-500">
+                <p>A busca global está sendo implementada.</p>
+                <p>Por enquanto, navegue pelos departamentos abaixo.</p>
+             </div>
+          ) : (
+            // Renderiza um Carrossel para cada Departamento encontrado
+            Object.entries(groupedProducts).map(([deptName, products]) => (
+              <ProductCarousel 
+                key={deptName}
+                title={deptName}
+                products={products}
+                deptLink={`/categoria/${slugify(deptName)}?nome=${encodeURIComponent(deptName)}`}
+              />
+            ))
+          )}
+        </div>
       )}
     </div>
   );

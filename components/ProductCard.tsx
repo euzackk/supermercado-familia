@@ -12,9 +12,10 @@ interface ProductProps {
     department: string;
     image_url?: string;
   };
+  compact?: boolean; // Nova propriedade para versao menor
 }
 
-export default function ProductCard({ product }: ProductProps) {
+export default function ProductCard({ product, compact = false }: ProductProps) {
   const { addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
 
@@ -23,51 +24,52 @@ export default function ProductCard({ product }: ProductProps) {
     currency: 'BRL'
   }).format(product.price || 0);
 
-  const liked = isFavorite(product.id);
+  const liked = isFavorite ? isFavorite(product.id) : false;
 
   return (
-    <div className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex flex-col h-full relative group hover:border-orange-300 hover:shadow-md transition-all">
+    <div className={`bg-white rounded-xl border border-gray-100 shadow-sm flex flex-col relative group overflow-hidden hover:shadow-lg transition-all duration-300 ${compact ? 'w-[160px] md:w-[180px]' : 'w-full'}`}>
       
-      {/* Botão de Favoritar (Coração) no topo direito */}
+      {/* Botão Favorito */}
       <button 
-        onClick={() => toggleFavorite(product)}
-        className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-white/80 shadow-sm hover:bg-white transition"
+        onClick={() => toggleFavorite && toggleFavorite(product)}
+        className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white text-gray-400 hover:text-red-500 transition"
       >
-        <Heart className={`w-4 h-4 ${liked ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
+        <Heart className={`w-4 h-4 ${liked ? 'fill-red-500 text-red-500' : ''}`} />
       </button>
 
-      {/* Imagem do Produto */}
-      <div className="bg-gray-50 h-32 rounded-lg mb-2 flex items-center justify-center relative overflow-hidden">
+      {/* Imagem Quadrada (O segredo anti-alongamento) */}
+      <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-3 relative">
         {product.image_url ? (
-           <img src={product.image_url} alt={product.name} className="object-contain w-full h-full p-2" />
+           <img 
+             src={product.image_url} 
+             alt={product.name} 
+             className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500" 
+           />
         ) : (
-           <ImageIcon className="text-gray-200 w-8 h-8" />
+           <ImageIcon className="text-gray-200 w-10 h-10" />
         )}
       </div>
 
-      {/* Informações */}
-      <div className="flex flex-col flex-1 justify-between">
-        <div>
-          <span className="text-[9px] text-orange-500 font-bold uppercase tracking-wider mb-1 line-clamp-1">
-              {product.department || 'Geral'}
-          </span>
-          
-          <h3 className="font-medium text-gray-800 text-xs leading-tight mb-2 line-clamp-2 min-h-[2.5em]" title={product.name}>
-            {product.name}
-          </h3>
-        </div>
+      {/* Info */}
+      <div className="p-3 flex flex-col flex-1 gap-1">
+        <span className="text-[10px] text-orange-500 font-bold uppercase tracking-wider line-clamp-1">
+            {product.department}
+        </span>
         
-        {/* Preço e Botão Adicionar */}
-        <div className="flex items-center justify-between pt-2 border-t border-gray-50 mt-1">
-          <span className="font-bold text-blue-900 text-sm">
+        <h3 className="font-medium text-gray-700 text-xs leading-snug line-clamp-2 min-h-[2.5em]" title={product.name}>
+          {product.name}
+        </h3>
+        
+        <div className="mt-auto pt-2 flex items-center justify-between">
+          <span className="font-bold text-sm text-gray-900">
             {formattedPrice}
           </span>
           
           <button 
             onClick={() => addToCart(product)}
-            className="bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-green-600 active:scale-90 transition shadow-sm"
+            className="bg-green-500 text-white w-7 h-7 rounded-full flex items-center justify-center hover:bg-green-600 active:scale-90 transition shadow-sm"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4" />
           </button>
         </div>
       </div>
