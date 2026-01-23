@@ -1,14 +1,14 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  /* Ignora erros de ESLint e TypeScript na hora de criar o site (Build) */
+const nextConfig = {
+  /* Ignora erros de Lint e TS no Build para não travar o deploy */
   eslint: {
     ignoreDuringBuilds: true,
   },
   typescript: {
     ignoreBuildErrors: true,
   },
-  /* Garante que imagens externas funcionem se você usar o componente Image do Next */
+  /* Configuração de Imagens */
   images: {
     remotePatterns: [
       {
