@@ -91,8 +91,8 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
                 <Bike className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
                 <div>
                   <span className="font-bold text-gray-800">Entregas:</span>
-                  <p className="text-xs">Seg à Sáb: 07h às 19h</p>
-                  <p className="text-xs">Domingo: 07h às 11h</p>
+                  <p className="text-xs">Seg à Sáb: 08h às 19h</p>
+                  <p className="text-xs">Domingo: 08h às 11h</p>
                 </div>
              </div>
 

@@ -59,7 +59,7 @@ export default function PoliticasPage() {
                  As entregas são realizadas dentro do perímetro urbano de Porto Velho/RO, conforme as zonas de atendimento pré-estabelecidas.
               </p>
               <ul className="list-disc pl-5 space-y-2">
-                 <li><strong>Horários:</strong> As entregas ocorrem de Segunda a Sábado das 07h às 19h e aos Domingos das 07h às 11h.</li>
+                 <li><strong>Horários:</strong> As entregas ocorrem de Segunda a Sábado das 08h às 19h e aos Domingos das 08h às 11h.</li>
                  <li><strong>Recebimento:</strong> É indispensável a presença de uma pessoa responsável no local para conferência e recebimento dos produtos.</li>
                  <li><strong>Tentativas:</strong> Caso não haja ninguém para receber, o pedido retornará à loja e será cobrada uma nova taxa de frete para reenvio.</li>
               </ul>
