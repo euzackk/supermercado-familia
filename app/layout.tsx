@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from "next"; // Adicione Viewport
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import AppLayoutWrapper from "@/components/AppLayoutWrapper";
@@ -8,27 +8,26 @@ import { AuthProvider } from "@/context/AuthContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// Configuração de Visual (Viewport) separada no Next.js 16
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  userScalable: false, // Impede zoom pinça, sensação de app nativo
-  themeColor: "#1e3a8a", // Pinta a barra de status do Android de azul
+  userScalable: false,
+  themeColor: "#1e3a8a",
 };
 
 export const metadata: Metadata = {
   title: "Supermercado Família",
   description: "O melhor para sua casa",
-  manifest: "/manifest.json", // Link automático pro arquivo que criamos
+  manifest: "/manifest.json", 
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Sup. Família",
+    title: "Supermercado Família", // NOME INTEIRO PARA IPHONE
   },
   icons: {
-    icon: "/logo.png", // Ícone da aba
-    apple: "/logo.png", // Ícone da tela inicial do iPhone
+    icon: "/logo-app.png",
+    apple: "/logo-app.png", // Ícone para iPhone
   },
 };
 
