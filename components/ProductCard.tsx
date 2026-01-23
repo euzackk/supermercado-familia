@@ -12,7 +12,7 @@ interface ProductProps {
     department: string;
     image_url?: string;
   };
-  compact?: boolean; // Nova propriedade para versao menor
+  compact?: boolean; // Se true, o card fica menorzinho para o carrossel
 }
 
 export default function ProductCard({ product, compact = false }: ProductProps) {
@@ -26,8 +26,11 @@ export default function ProductCard({ product, compact = false }: ProductProps) 
 
   const liked = isFavorite ? isFavorite(product.id) : false;
 
+  // Define a largura fixa se for compacto (carrossel), ou flexível se for grid
+  const widthClass = compact ? 'min-w-[160px] w-[160px]' : 'w-full';
+
   return (
-    <div className={`bg-white rounded-xl border border-gray-100 shadow-sm flex flex-col relative group overflow-hidden hover:shadow-lg transition-all duration-300 ${compact ? 'w-[160px] md:w-[180px]' : 'w-full'}`}>
+    <div className={`bg-white rounded-xl border border-gray-100 shadow-sm flex flex-col relative group overflow-hidden hover:shadow-lg transition-all duration-300 ${widthClass}`}>
       
       {/* Botão Favorito */}
       <button 
@@ -37,9 +40,10 @@ export default function ProductCard({ product, compact = false }: ProductProps) 
         <Heart className={`w-4 h-4 ${liked ? 'fill-red-500 text-red-500' : ''}`} />
       </button>
 
-      {/* Imagem Quadrada (O segredo anti-alongamento) */}
+      {/* ÁREA DA IMAGEM (O segredo: aspect-square trava em quadrado) */}
       <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-3 relative">
         {product.image_url ? (
+           // object-contain garante que a imagem inteira apareça sem cortar ou esticar
            <img 
              src={product.image_url} 
              alt={product.name} 
@@ -50,7 +54,7 @@ export default function ProductCard({ product, compact = false }: ProductProps) 
         )}
       </div>
 
-      {/* Info */}
+      {/* Informações */}
       <div className="p-3 flex flex-col flex-1 gap-1">
         <span className="text-[10px] text-orange-500 font-bold uppercase tracking-wider line-clamp-1">
             {product.department}
