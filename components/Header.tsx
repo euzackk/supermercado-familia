@@ -6,16 +6,20 @@ import { useCart } from '@/context/CartContext';
 
 interface HeaderProps {
   onOpenCart: () => void;
+  onOpenMenu: () => void; // Nova propriedade
 }
 
-// Removemos a propriedade 'onOpenMenu'
-export default function Header({ onOpenCart }: HeaderProps) {
+export default function Header({ onOpenCart, onOpenMenu }: HeaderProps) {
   const { cartCount } = useCart();
 
   return (
     <header className="flex items-center justify-between px-4 py-3 bg-white sticky top-0 z-30 shadow-sm border-b border-gray-100">
-      {/* Botão de Menu apenas visual (sem onClick) */}
-      <button className="p-1 text-gray-400 cursor-default">
+      
+      {/* Botão de Menu AGORA CLICÁVEL */}
+      <button 
+        onClick={onOpenMenu}
+        className="p-1 text-gray-600 hover:bg-gray-100 rounded-full transition active:scale-90"
+      >
         <Menu className="w-7 h-7" />
       </button>
       
@@ -29,7 +33,7 @@ export default function Header({ onOpenCart }: HeaderProps) {
          />
       </div>
 
-      <button onClick={onOpenCart} className="p-1 relative hover:bg-gray-100 rounded-full transition">
+      <button onClick={onOpenCart} className="p-1 relative hover:bg-gray-100 rounded-full transition active:scale-90">
         <ShoppingCart className="w-7 h-7 text-gray-800" />
         
         {cartCount > 0 && (
