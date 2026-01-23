@@ -16,15 +16,21 @@ type FavoritesContextType = {
   isFavorite: (id: number) => boolean;
 };
 
-const FavoritesContext = createContext<FavoritesContextType>({} as FavoritesContextType);
+const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
 
 export function FavoritesProvider({ children }: { children: ReactNode }) {
   const [favorites, setFavorites] = useState<Product[]>([]);
 
-  // Carrega do LocalStorage ao abrir o site
+  // Carrega do LocalStorage ao iniciar
   useEffect(() => {
     const saved = localStorage.getItem('favorites-storage');
-    if (saved) setFavorites(JSON.parse(saved));
+    if (saved) {
+      try {
+        setFavorites(JSON.parse(saved));
+      } catch (e) {
+        console.error("Erro ao ler favoritos", e);
+      }
+    }
   }, []);
 
   // Salva no LocalStorage sempre que mudar
@@ -37,8 +43,9 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       const exists = prev.find(p => p.id === product.id);
       if (exists) {
         return prev.filter(p => p.id !== product.id); // Remove
+      } else {
+        return [...prev, product]; // Adiciona
       }
-      return [...prev, product]; // Adiciona
     });
   };
 
@@ -53,4 +60,15 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export const useFavorites = () => useContext(FavoritesContext);
+export const useFavorites = () => {
+  const context = useContext(FavoritesContext);
+  // Retornamos um objeto vazio ou funções dummy se o contexto falhar, para não quebrar a app
+  if (!context) {
+    return {
+      favorites: [],
+      toggleFavorite: () => {},
+      isFavorite: () => false
+    };
+  }
+  return context;
+};
