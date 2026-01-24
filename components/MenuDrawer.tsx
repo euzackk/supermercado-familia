@@ -23,7 +23,8 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
   const instagramLink = "https://www.instagram.com/supermercadofamiliapvh";
 
   return (
-    <div className={`fixed inset-0 z-50 flex justify-start ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+    // CORREÇÃO: z-[100] para garantir prioridade máxima
+    <div className={`fixed inset-0 z-[100] flex justify-start ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
       
       <div 
         className={`fixed inset-0 bg-black/60 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`} 
@@ -32,7 +33,6 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
 
       <div className={`relative w-[85%] max-w-xs bg-white h-full shadow-2xl flex flex-col transition-transform duration-300 ease-out transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         
-        {/* Cabeçalho do Menu */}
         <div className="bg-blue-900 p-6 pt-12 text-white relative overflow-hidden">
           <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
           
@@ -42,13 +42,12 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
 
           <div className="relative z-10">
             <h2 className="text-2xl font-bold mb-1">Supermercado Família</h2>
-            <p className="text-blue-200 text-sm">Feito pra você.</p>
+            <p className="text-blue-200 text-sm">Feito pra Você.</p>
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto py-6 px-4 space-y-6 bg-gray-50">
           
-          {/* Botão Destaque App */}
           <Link 
             href="/tutorial"
             onClick={onClose}
@@ -69,7 +68,6 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
              </div>
           </Link>
 
-          {/* Informações */}
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-4">
              <h3 className="font-bold text-gray-800 border-b border-gray-100 pb-2">Informações</h3>
              
@@ -91,8 +89,8 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
                 <Bike className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
                 <div>
                   <span className="font-bold text-gray-800">Entregas:</span>
-                  <p className="text-xs">Seg à Sáb: 08h às 19h</p>
-                  <p className="text-xs">Domingo: 08h às 11h</p>
+                  <p className="text-xs">Seg à Sáb: 07h às 19h</p>
+                  <p className="text-xs">Domingo: 07h às 11h</p>
                 </div>
              </div>
 
@@ -101,26 +99,6 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
                 <span>(69) 99255-7719</span>
              </div>
           </div>
-
-          {/* NOVO LINK DE POLÍTICAS */}
-          <Link 
-            href="/politicas" 
-            onClick={onClose}
-            className="block bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:border-orange-300 transition group"
-          >
-             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                   <div className="bg-blue-50 p-2 rounded-lg text-blue-600 group-hover:bg-orange-50 group-hover:text-orange-600 transition">
-                      <FileText className="w-5 h-5" />
-                   </div>
-                   <div>
-                      <h3 className="font-bold text-gray-800">Termos e Políticas</h3>
-                      <p className="text-xs text-gray-500">Privacidade, Trocas e Regras</p>
-                   </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-gray-300" />
-             </div>
-          </Link>
 
           <Link 
             href="/sugestoes" 
@@ -138,6 +116,25 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
                    </div>
                 </div>
                 <ExternalLink className="w-4 h-4 text-gray-300" />
+             </div>
+          </Link>
+
+          <Link 
+            href="/politicas" 
+            onClick={onClose}
+            className="block bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:border-orange-300 transition group"
+          >
+             <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                   <div className="bg-gray-100 p-2 rounded-lg text-gray-600 group-hover:bg-orange-50 group-hover:text-orange-600 transition">
+                      <FileText className="w-5 h-5" />
+                   </div>
+                   <div>
+                      <h3 className="font-bold text-gray-800">Políticas e Termos</h3>
+                      <p className="text-xs text-gray-500">Privacidade e Regras</p>
+                   </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-300" />
              </div>
           </Link>
 
