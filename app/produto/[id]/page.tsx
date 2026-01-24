@@ -12,7 +12,9 @@ import {
   Minus, 
   Plus, 
   Heart, 
-  LayoutGrid 
+  LayoutGrid,
+  Scale,
+  Banknote
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -27,191 +29,224 @@ export default function ProductPage() {
 
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [qty, setQty] = useState(1);
+  
+  // Estados de Controle
   const [adding, setAdding] = useState(false);
+  const [productType, setProductType] = useState<'unit' | 'bulk'>('unit');
+  
+  // Estado Unidade
+  const [qtyUnit, setQtyUnit] = useState(1);
+
+  // Estado Balança (Bulk)
+  const [bulkMode, setBulkMode] = useState<'weight' | 'price'>('weight'); // 'weight' = gramas, 'price' = reais
+  const [inputValue, setInputValue] = useState(''); // O que o usuário digita
 
   useEffect(() => {
     async function fetchProduct() {
       if (!id) return;
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const { data, error } = await supabase.from('products').select('*').eq('id', id).single();
       
-      if (error) console.error('Erro ao buscar:', error);
-      setProduct(data);
+      if (data) {
+        setProduct(data);
+        identifyProductType(data.name);
+      }
       setLoading(false);
     }
     fetchProduct();
   }, [id]);
 
-  const handleAddToCart = () => {
-    setAdding(true);
-    for (let i = 0; i < qty; i++) {
-      addToCart(product);
+  // --- INTELIGÊNCIA: Define se é KG ou Unidade ---
+  function identifyProductType(name: string) {
+    const n = name.toLowerCase();
+    
+    // Regra 1: Se tem número colado com unidade (Ex: 5kg, 1kg, 500g, 2l), é PACOTE/UNIDADE
+    // Regex procura por digito seguido de kg, g, l ou ml
+    if (/\d+\s*(kg|g|l|ml)/.test(n)) {
+      setProductType('unit');
+      return;
     }
-    setTimeout(() => setAdding(false), 500);
-  };
 
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      router.back();
+    // Regra 2: Se termina com "kg" ou tem "quilo" no nome e NÃO caiu na regra 1, é PESO
+    if (n.endsWith('kg') || n.includes('quilo') || n.endsWith(' k')) {
+      setProductType('bulk');
+      return;
+    }
+
+    setProductType('unit'); // Padrão
+  }
+
+  // Cálculos de Balança
+  const getCalculatedQty = () => {
+    if (productType === 'unit') return qtyUnit;
+
+    const val = parseFloat(inputValue.replace(',', '.') || '0');
+    if (val <= 0) return 0;
+
+    if (bulkMode === 'weight') {
+      // Se digitou 500g, divide por 1000 pra virar KG (0.5)
+      return val / 1000;
     } else {
-      router.push('/');
+      // Se digitou R$ 20,00, divide pelo preço do KG (20 / 40 = 0.5kg)
+      return val / product.price;
     }
   };
 
-  if (loading) return (
-    <div className="h-screen flex items-center justify-center bg-white">
-      <Loader2 className="animate-spin text-orange-500 w-8 h-8"/>
-    </div>
-  );
+  const finalQty = getCalculatedQty();
+  const finalPrice = product ? product.price * finalQty : 0;
 
-  if (!product) return (
-    <div className="h-screen flex flex-col items-center justify-center bg-white p-4 text-center">
-      <p className="text-gray-500 mb-4">Produto não encontrado.</p>
-      <button onClick={() => router.push('/')} className="text-orange-500 font-bold hover:underline">
-        Voltar para o início
-      </button>
-    </div>
-  );
+  const handleAddToCart = () => {
+    if (finalQty <= 0) {
+      alert("Por favor, informe uma quantidade válida.");
+      return;
+    }
+
+    setAdding(true);
+    addToCart(product, finalQty); // Manda a quantidade exata (ex: 0.5)
+    
+    // Feedback visual e limpa inputs
+    setTimeout(() => {
+        setAdding(false);
+        setInputValue('');
+        setQtyUnit(1);
+    }, 1000);
+  };
+
+  if (loading) return <div className="h-screen flex items-center justify-center bg-white"><Loader2 className="animate-spin text-orange-500 w-8 h-8"/></div>;
+  if (!product) return null;
 
   const liked = isFavorite ? isFavorite(product.id) : false;
 
   return (
-    <div className="min-h-screen bg-white pb-32">
+    <div className="min-h-screen bg-white pb-40">
       
+      {/* Header Fixo Transparente */}
       <div className="fixed top-0 w-full p-4 flex justify-between items-center z-20 pointer-events-none">
-        <button 
-          onClick={handleBack} 
-          className="pointer-events-auto bg-white/90 backdrop-blur shadow-sm p-2.5 rounded-full text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition active:scale-95 border border-gray-100"
-        >
+        <button onClick={() => router.back()} className="pointer-events-auto bg-white/90 backdrop-blur shadow-sm p-2.5 rounded-full text-gray-700 border border-gray-100">
           <ArrowLeft className="w-6 h-6" />
         </button>
-
-        <Link 
-          href="/depts"
-          className="pointer-events-auto bg-white/90 backdrop-blur shadow-sm px-4 py-2.5 rounded-full text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition active:scale-95 border border-gray-100 flex items-center gap-2 text-xs font-bold uppercase tracking-wide"
-        >
+        <Link href="/depts" className="pointer-events-auto bg-white/90 backdrop-blur shadow-sm px-4 py-2.5 rounded-full text-gray-700 border border-gray-100 flex items-center gap-2 text-xs font-bold uppercase tracking-wide">
           Departamentos <LayoutGrid className="w-4 h-4" />
         </Link>
       </div>
 
-      <div className="w-full h-[45vh] bg-gray-50 flex items-center justify-center p-8 relative">
+      {/* Imagem */}
+      <div className="w-full h-[40vh] bg-gray-50 flex items-center justify-center p-8 relative">
         {product.image_url ? (
-          <img 
-            src={product.image_url} 
-            alt={product.name} 
-            className="w-full h-full object-contain mix-blend-multiply drop-shadow-xl" 
-          />
+          <img src={product.image_url} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
         ) : (
-          <div className="text-gray-300 flex flex-col items-center">
-            <LayoutGrid className="w-12 h-12 mb-2"/>
-            Sem imagem
-          </div>
+          <LayoutGrid className="w-12 h-12 text-gray-300"/>
         )}
       </div>
 
-      <div className="-mt-8 bg-white rounded-t-[2.5rem] relative z-10 px-6 py-8 min-h-[50vh] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] border-t border-gray-100">
-        
-        <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-8" />
+      {/* Conteúdo */}
+      <div className="-mt-8 bg-white rounded-t-[2.5rem] relative z-10 px-6 py-8 min-h-[60vh] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] border-t border-gray-100">
         
         <div className="flex justify-between items-start gap-4">
           <div>
             <span className="inline-block px-2.5 py-1 rounded-lg bg-orange-100 text-orange-600 text-[10px] font-bold uppercase tracking-wider mb-2">
-              {product.department || 'Geral'}
+              {productType === 'bulk' ? 'Vendido por Peso' : 'Unidade / Pacote'}
             </span>
-            <h1 className="text-2xl font-bold text-gray-900 leading-tight">
-              {product.name}
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900 leading-tight">{product.name}</h1>
           </div>
-
-          <button 
-            onClick={() => toggleFavorite && toggleFavorite(product)}
-            className="flex-shrink-0 p-3 rounded-full bg-gray-50 hover:bg-red-50 transition active:scale-90"
-          >
-            <Heart 
-              className={`w-6 h-6 transition-colors ${liked ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
-            />
+          <button onClick={() => toggleFavorite && toggleFavorite(product)} className="flex-shrink-0 p-3 rounded-full bg-gray-50 hover:bg-red-50">
+            <Heart className={`w-6 h-6 ${liked ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
           </button>
         </div>
         
-        <div className="mt-6 flex items-baseline gap-1">
+        <div className="mt-4 flex items-baseline gap-1">
           <span className="text-sm font-medium text-gray-400">R$</span>
-          <span className="text-4xl font-extrabold text-gray-900 tracking-tight">
-            {product.price.toFixed(2).replace('.', ',')}
-          </span>
-          <span className="text-sm font-medium text-gray-400">/unidade</span>
+          <span className="text-4xl font-extrabold text-gray-900">{product.price.toFixed(2).replace('.', ',')}</span>
+          <span className="text-sm font-medium text-gray-400">/{productType === 'bulk' ? 'kg' : 'un'}</span>
         </div>
 
+        {/* --- CONTROLES DE QUANTIDADE --- */}
+        <div className="mt-8 p-5 bg-gray-50 rounded-2xl border border-gray-100">
+          
+          {productType === 'unit' ? (
+            // MODO UNIDADE (Arroz 5kg, Coca-cola, etc)
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-gray-700">Quantidade</span>
+               <div className="flex items-center gap-4 bg-white border border-gray-200 rounded-xl px-2 py-1 shadow-sm">
+                  <button onClick={() => setQtyUnit(q => Math.max(1, q - 1))} className="p-3 text-gray-500 hover:bg-gray-50 rounded-lg"><Minus className="w-4 h-4"/></button>
+                  <span className="font-bold w-6 text-center text-lg">{qtyUnit}</span>
+                  <button onClick={() => setQtyUnit(q => q + 1)} className="p-3 text-gray-500 hover:bg-gray-50 rounded-lg"><Plus className="w-4 h-4"/></button>
+               </div>
+            </div>
+
+          ) : (
+            // MODO PESO (Fraldinha, Tomate, etc)
+            <div className="space-y-4">
+                <div className="flex p-1 bg-gray-200 rounded-xl">
+                    <button 
+                        onClick={() => { setBulkMode('weight'); setInputValue(''); }}
+                        className={`flex-1 py-2 text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition ${bulkMode === 'weight' ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}
+                    >
+                        <Scale className="w-4 h-4"/> Por Gramas
+                    </button>
+                    <button 
+                        onClick={() => { setBulkMode('price'); setInputValue(''); }}
+                        className={`flex-1 py-2 text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition ${bulkMode === 'price' ? 'bg-white shadow text-green-700' : 'text-gray-500'}`}
+                    >
+                        <Banknote className="w-4 h-4"/> Por Valor (R$)
+                    </button>
+                </div>
+
+                <div className="relative">
+                    <input 
+                        type="number" 
+                        inputMode="decimal"
+                        placeholder={bulkMode === 'weight' ? "Ex: 500 (para 500g)" : "Ex: 20 (para R$ 20,00)"}
+                        className="w-full p-4 text-center text-xl font-bold bg-white border border-gray-200 rounded-xl outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition"
+                        value={inputValue}
+                        onChange={e => setInputValue(e.target.value)}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">
+                        {bulkMode === 'weight' ? 'gramas' : 'reais'}
+                    </span>
+                </div>
+
+                {/* Resumo do Cálculo */}
+                <div className="text-center text-sm text-gray-600 bg-orange-50 p-2 rounded-lg border border-orange-100">
+                    Você está levando: <strong>{finalQty.toFixed(3).replace('.', ',')} kg</strong>
+                </div>
+            </div>
+          )}
+        </div>
+
+        {/* Descrição */}
         <div className="mt-8">
-          <h3 className="text-sm font-bold text-gray-900 mb-2">Sobre o produto</h3>
+          <h3 className="text-sm font-bold text-gray-900 mb-2">Detalhes</h3>
           <p className="text-gray-500 leading-relaxed text-sm">
-            {product.description || "Este é um produto de excelente qualidade selecionado especialmente para você. Aproveite as melhores ofertas do nosso supermercado com entrega rápida e segura."}
+            {product.description || "Produto selecionado com qualidade garantida Família."}
           </p>
-        </div>
-
-        {/* --- BOTÃO EXTRA VISÍVEL NO MEIO DA TELA --- */}
-        <div className="mt-8 p-4 bg-gray-50 rounded-2xl border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <span className="font-bold text-gray-700">Quantidade</span>
-             <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-2 py-1">
-                <button onClick={() => setQty(q => Math.max(1, q - 1))} className="p-2 text-gray-500"><Minus className="w-4 h-4"/></button>
-                <span className="font-bold w-4 text-center">{qty}</span>
-                <button onClick={() => setQty(q => q + 1)} className="p-2 text-gray-500"><Plus className="w-4 h-4"/></button>
-             </div>
-          </div>
-          <button 
-            onClick={handleAddToCart}
-            className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition active:scale-95 ${
-               adding ? 'bg-green-600 text-white' : 'bg-orange-500 text-white hover:bg-orange-600'
-            }`}
-          >
-             {adding ? "Adicionado!" : "Adicionar ao Carrinho"}
-          </button>
         </div>
       </div>
 
-      {/* --- BARRA FIXA DE COMPRA (Rodapé) --- */}
+      {/* --- RODAPÉ FIXO --- */}
       <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 p-4 pb-safe z-30 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-        <div className="flex gap-4 max-w-md mx-auto">
-          <div className="flex items-center gap-3 bg-gray-100 rounded-2xl px-4 py-2">
-            <button 
-              onClick={() => setQty(q => Math.max(1, q - 1))} 
-              className="p-2 text-gray-500 hover:text-black hover:bg-white rounded-xl transition disabled:opacity-50"
-              disabled={qty <= 1}
-            >
-              <Minus className="w-5 h-5"/>
-            </button>
-            <span className="font-bold text-lg w-6 text-center text-gray-900">{qty}</span>
-            <button 
-              onClick={() => setQty(q => q + 1)} 
-              className="p-2 text-gray-500 hover:text-black hover:bg-white rounded-xl transition"
-            >
-              <Plus className="w-5 h-5"/>
-            </button>
-          </div>
-          
-          <button 
-            onClick={handleAddToCart}
-            disabled={adding}
-            className={`flex-1 font-bold rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-200 active:scale-[0.98] py-4
-              ${adding ? 'bg-green-500 text-white' : 'bg-orange-500 text-white hover:bg-orange-600'}
-            `}
-          >
-            {adding ? (
-              <>Adicionado! <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span></>
-            ) : (
-              <>
-                <ShoppingCart className="w-5 h-5" />
-                <span className="text-sm">
-                  Adicionar {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.price * qty)}
+        <button 
+          onClick={handleAddToCart}
+          disabled={adding || finalQty <= 0}
+          className={`w-full max-w-md mx-auto py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98]
+            ${adding 
+                ? 'bg-green-500 text-white shadow-green-200' 
+                : finalQty > 0 ? 'bg-orange-500 text-white shadow-orange-200 hover:bg-orange-600' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}
+          `}
+        >
+          {adding ? (
+            <>Adicionado! <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span></>
+          ) : (
+            <>
+              <ShoppingCart className="w-5 h-5" />
+              <div className="flex flex-col items-start leading-none">
+                <span className="text-xs opacity-90 font-normal">Adicionar ao carrinho</span>
+                <span className="text-lg">
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
                 </span>
-              </>
-            )}
-          </button>
-        </div>
+              </div>
+            </>
+          )}
+        </button>
       </div>
     </div>
   );
