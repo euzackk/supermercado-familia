@@ -42,7 +42,7 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
 
           <div className="relative z-10">
             <h2 className="text-2xl font-bold mb-1">Supermercado Família</h2>
-            <p className="text-blue-200 text-sm">O melhor para sua casa</p>
+            <p className="text-blue-200 text-sm">Feito pra você.</p>
           </div>
         </div>
 
