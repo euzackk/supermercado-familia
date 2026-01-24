@@ -30,16 +30,10 @@ export default function ProductPage() {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
-  // Estados de Controle
   const [adding, setAdding] = useState(false);
-  const [productType, setProductType] = useState<'unit' | 'bulk'>('unit');
-  
-  // Estado Unidade
   const [qtyUnit, setQtyUnit] = useState(1);
-
-  // Estado Balança (Bulk)
-  const [bulkMode, setBulkMode] = useState<'weight' | 'price'>('weight'); // 'weight' = gramas, 'price' = reais
-  const [inputValue, setInputValue] = useState(''); // O que o usuário digita
+  const [bulkMode, setBulkMode] = useState<'weight' | 'price'>('weight');
+  const [inputValue, setInputValue] = useState('');
 
   useEffect(() => {
     async function fetchProduct() {
@@ -48,34 +42,21 @@ export default function ProductPage() {
       
       if (data) {
         setProduct(data);
-        identifyProductType(data.name);
+        // O banco agora diz se é 'unit' ou 'bulk'. Se for nulo, assume unit.
+        // Não precisamos mais da função identifyProductType complexa!
       }
       setLoading(false);
     }
     fetchProduct();
   }, [id]);
 
-  // --- INTELIGÊNCIA: Define se é KG ou Unidade ---
-  function identifyProductType(name: string) {
-    const n = name.toLowerCase();
-    
-    // Regra 1: Se tem número colado com unidade (Ex: 5kg, 1kg, 500g, 2l), é PACOTE/UNIDADE
-    // Regex procura por digito seguido de kg, g, l ou ml
-    if (/\d+\s*(kg|g|l|ml)/.test(n)) {
-      setProductType('unit');
-      return;
-    }
+  // Se o produto ainda não carregou
+  if (loading) return <div className="h-screen flex items-center justify-center bg-white"><Loader2 className="animate-spin text-orange-500 w-8 h-8"/></div>;
+  if (!product) return null;
 
-    // Regra 2: Se termina com "kg" ou tem "quilo" no nome e NÃO caiu na regra 1, é PESO
-    if (n.endsWith('kg') || n.includes('quilo') || n.endsWith(' k')) {
-      setProductType('bulk');
-      return;
-    }
+  // Define o tipo baseado no banco (fallback para 'unit' se antigo)
+  const productType = product.type_sale || 'unit';
 
-    setProductType('unit'); // Padrão
-  }
-
-  // Cálculos de Balança
   const getCalculatedQty = () => {
     if (productType === 'unit') return qtyUnit;
 
@@ -83,11 +64,9 @@ export default function ProductPage() {
     if (val <= 0) return 0;
 
     if (bulkMode === 'weight') {
-      // Se digitou 500g, divide por 1000 pra virar KG (0.5)
-      return val / 1000;
+      return val / 1000; // Gramas para KG
     } else {
-      // Se digitou R$ 20,00, divide pelo preço do KG (20 / 40 = 0.5kg)
-      return val / product.price;
+      return val / product.price; // Reais para KG
     }
   };
 
@@ -101,9 +80,8 @@ export default function ProductPage() {
     }
 
     setAdding(true);
-    addToCart(product, finalQty); // Manda a quantidade exata (ex: 0.5)
+    addToCart(product, finalQty);
     
-    // Feedback visual e limpa inputs
     setTimeout(() => {
         setAdding(false);
         setInputValue('');
@@ -111,15 +89,11 @@ export default function ProductPage() {
     }, 1000);
   };
 
-  if (loading) return <div className="h-screen flex items-center justify-center bg-white"><Loader2 className="animate-spin text-orange-500 w-8 h-8"/></div>;
-  if (!product) return null;
-
   const liked = isFavorite ? isFavorite(product.id) : false;
 
   return (
     <div className="min-h-screen bg-white pb-40">
       
-      {/* Header Fixo Transparente */}
       <div className="fixed top-0 w-full p-4 flex justify-between items-center z-20 pointer-events-none">
         <button onClick={() => router.back()} className="pointer-events-auto bg-white/90 backdrop-blur shadow-sm p-2.5 rounded-full text-gray-700 border border-gray-100">
           <ArrowLeft className="w-6 h-6" />
@@ -129,7 +103,6 @@ export default function ProductPage() {
         </Link>
       </div>
 
-      {/* Imagem */}
       <div className="w-full h-[40vh] bg-gray-50 flex items-center justify-center p-8 relative">
         {product.image_url ? (
           <img src={product.image_url} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
@@ -138,12 +111,11 @@ export default function ProductPage() {
         )}
       </div>
 
-      {/* Conteúdo */}
       <div className="-mt-8 bg-white rounded-t-[2.5rem] relative z-10 px-6 py-8 min-h-[60vh] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] border-t border-gray-100">
         
         <div className="flex justify-between items-start gap-4">
           <div>
-            <span className="inline-block px-2.5 py-1 rounded-lg bg-orange-100 text-orange-600 text-[10px] font-bold uppercase tracking-wider mb-2">
+            <span className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider mb-2 ${productType === 'bulk' ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>
               {productType === 'bulk' ? 'Vendido por Peso' : 'Unidade / Pacote'}
             </span>
             <h1 className="text-2xl font-bold text-gray-900 leading-tight">{product.name}</h1>
@@ -159,11 +131,10 @@ export default function ProductPage() {
           <span className="text-sm font-medium text-gray-400">/{productType === 'bulk' ? 'kg' : 'un'}</span>
         </div>
 
-        {/* --- CONTROLES DE QUANTIDADE --- */}
         <div className="mt-8 p-5 bg-gray-50 rounded-2xl border border-gray-100">
           
           {productType === 'unit' ? (
-            // MODO UNIDADE (Arroz 5kg, Coca-cola, etc)
+            // === MODO UNIDADE (Arroz 5kg) ===
             <div className="flex items-center justify-between">
               <span className="font-bold text-gray-700">Quantidade</span>
                <div className="flex items-center gap-4 bg-white border border-gray-200 rounded-xl px-2 py-1 shadow-sm">
@@ -174,7 +145,7 @@ export default function ProductPage() {
             </div>
 
           ) : (
-            // MODO PESO (Fraldinha, Tomate, etc)
+            // === MODO PESO (Fraldinha KG) ===
             <div className="space-y-4">
                 <div className="flex p-1 bg-gray-200 rounded-xl">
                     <button 
@@ -205,15 +176,15 @@ export default function ProductPage() {
                     </span>
                 </div>
 
-                {/* Resumo do Cálculo */}
-                <div className="text-center text-sm text-gray-600 bg-orange-50 p-2 rounded-lg border border-orange-100">
-                    Você está levando: <strong>{finalQty.toFixed(3).replace('.', ',')} kg</strong>
-                </div>
+                {finalQty > 0 && (
+                    <div className="text-center text-sm text-gray-600 bg-orange-50 p-2 rounded-lg border border-orange-100 animate-in fade-in">
+                        Você levará aprox: <strong>{finalQty.toFixed(3).replace('.', ',')} kg</strong>
+                    </div>
+                )}
             </div>
           )}
         </div>
 
-        {/* Descrição */}
         <div className="mt-8">
           <h3 className="text-sm font-bold text-gray-900 mb-2">Detalhes</h3>
           <p className="text-gray-500 leading-relaxed text-sm">
@@ -222,7 +193,6 @@ export default function ProductPage() {
         </div>
       </div>
 
-      {/* --- RODAPÉ FIXO --- */}
       <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 p-4 pb-safe z-30 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
         <button 
           onClick={handleAddToCart}

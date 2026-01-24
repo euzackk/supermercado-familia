@@ -2,22 +2,24 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-type Product = {
+// Definição do Produto (Incluindo type_sale para saber se é KG ou UN)
+export type Product = {
   id: number;
   name: string;
   price: number;
   image_url?: string;
-  department?: string; // Adicionado para compatibilidade
+  department?: string;
+  description?: string;
+  type_sale?: 'unit' | 'bulk' | string; // Campo crucial para a lógica
 };
 
-type CartItem = Product & {
+export type CartItem = Product & {
   quantity: number;
 };
 
 type CartContextType = {
   items: CartItem[];
-  // Agora aceita quantidade opcional (padrão 1)
-  addToCart: (product: Product, quantity?: number) => void; 
+  addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
@@ -30,31 +32,43 @@ const CartContext = createContext<CartContextType>({} as CartContextType);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
 
-  // Carregar do localStorage
+  // 1. Carregar carrinho salvo no LocalStorage ao abrir o site
   useEffect(() => {
-    const storedCart = localStorage.getItem('familia_cart');
-    if (storedCart) {
-      setItems(JSON.parse(storedCart));
+    if (typeof window !== 'undefined') {
+      const storedCart = localStorage.getItem('familia_cart');
+      if (storedCart) {
+        try {
+          setItems(JSON.parse(storedCart));
+        } catch (error) {
+          console.error("Erro ao carregar o carrinho:", error);
+          localStorage.removeItem('familia_cart');
+        }
+      }
     }
   }, []);
 
-  // Salvar no localStorage
+  // 2. Salvar no LocalStorage sempre que o carrinho mudar
   useEffect(() => {
-    localStorage.setItem('familia_cart', JSON.stringify(items));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('familia_cart', JSON.stringify(items));
+    }
   }, [items]);
 
-  // --- MUDANÇA PRINCIPAL AQUI ---
+  // Adicionar ao carrinho (soma quantidade se já existir)
   const addToCart = (product: Product, quantity = 1) => {
     setItems(prev => {
-      const existing = prev.find(item => item.id === product.id);
-      if (existing) {
-        // Soma a quantidade nova (pode ser decimal)
+      const existingItem = prev.find(item => item.id === product.id);
+
+      if (existingItem) {
+        // Se já existe, atualiza a quantidade (funciona para inteiros e decimais)
         return prev.map(item => 
           item.id === product.id 
             ? { ...item, quantity: item.quantity + quantity } 
             : item
         );
       }
+
+      // Se é novo, adiciona na lista
       return [...prev, { ...product, quantity }];
     });
   };
@@ -73,9 +87,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => setItems([]);
 
-  // Conta itens únicos ou soma totais (para o ícone, itens únicos costuma ser melhor)
+  // Contagem de itens (número de produtos distintos)
   const cartCount = items.length;
 
+  // Total em Reais
   const cartTotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
   return (

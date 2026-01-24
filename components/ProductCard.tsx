@@ -1,82 +1,107 @@
 'use client';
 
-import { Image as ImageIcon, Plus, Heart } from 'lucide-react';
-import { useCart } from '@/context/CartContext';
-import { useFavorites } from '@/context/FavoritesContext';
+import { ShoppingCart, Plus, Scale } from 'lucide-react';
+import { useCart, Product } from '@/context/CartContext';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { useState } from 'react';
 
-interface ProductProps {
-  product: {
-    id: number;
-    name: string;
-    price: number;
-    department: string;
-    image_url?: string;
-  };
-  compact?: boolean; // Se true, o card fica menorzinho para o carrossel
+interface ProductCardProps {
+  product: Product;
 }
 
-export default function ProductCard({ product, compact = false }: ProductProps) {
+export default function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
-  const { toggleFavorite, isFavorite } = useFavorites();
+  const router = useRouter();
+  const [adding, setAdding] = useState(false);
 
-  const formattedPrice = new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  }).format(product.price || 0);
+  // Verifica se é produto de balança (Bulk) lendo do banco
+  const isBulk = product.type_sale === 'bulk';
 
-  const liked = isFavorite ? isFavorite(product.id) : false;
+  const handleInteraction = (e: React.MouseEvent) => {
+    e.preventDefault(); // Impede o Link principal de abrir (se houver)
+    e.stopPropagation();
 
-  // Define a largura fixa se for compacto (carrossel), ou flexível se for grid
-  const widthClass = compact ? 'min-w-[160px] w-[160px]' : 'w-full';
+    if (isBulk) {
+      // SE FOR PESO: Redireciona para a página de detalhes para escolher a quantidade
+      router.push(`/produto/${product.id}`);
+    } else {
+      // SE FOR UNIDADE: Adiciona direto (1 unidade)
+      handleQuickAdd();
+    }
+  };
+
+  const handleQuickAdd = () => {
+    setAdding(true);
+    addToCart(product, 1);
+    setTimeout(() => setAdding(false), 500);
+  };
 
   return (
-    <div className={`bg-white rounded-xl border border-gray-100 shadow-sm flex flex-col relative group overflow-hidden hover:shadow-lg transition-all duration-300 ${widthClass}`}>
-      
-      {/* Botão Favorito */}
-      <button 
-        onClick={() => toggleFavorite && toggleFavorite(product)}
-        className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white text-gray-400 hover:text-red-500 transition"
-      >
-        <Heart className={`w-4 h-4 ${liked ? 'fill-red-500 text-red-500' : ''}`} />
-      </button>
-
-      {/* ÁREA DA IMAGEM (O segredo: aspect-square trava em quadrado) */}
-      <div className="w-full aspect-square bg-gray-50 flex items-center justify-center p-3 relative">
+    <Link 
+        href={`/produto/${product.id}`}
+        className="block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow relative flex flex-col h-full"
+    >
+      {/* Imagem */}
+      <div className="relative h-32 w-full bg-gray-50 flex items-center justify-center p-4">
         {product.image_url ? (
-           // object-contain garante que a imagem inteira apareça sem cortar ou esticar
-           <img 
-             src={product.image_url} 
-             alt={product.name} 
-             className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500" 
-           />
+          <Image 
+            src={product.image_url} 
+            alt={product.name} 
+            fill 
+            className="object-contain mix-blend-multiply p-2"
+            sizes="(max-width: 768px) 50vw, 33vw"
+          />
         ) : (
-           <ImageIcon className="text-gray-200 w-10 h-10" />
+          <div className="text-gray-300 text-xs">Sem foto</div>
         )}
       </div>
 
-      {/* Informações */}
-      <div className="p-3 flex flex-col flex-1 gap-1">
-        <span className="text-[10px] text-orange-500 font-bold uppercase tracking-wider line-clamp-1">
-            {product.department}
-        </span>
-        
-        <h3 className="font-medium text-gray-700 text-xs leading-snug line-clamp-2 min-h-[2.5em]" title={product.name}>
-          {product.name}
-        </h3>
-        
-        <div className="mt-auto pt-2 flex items-center justify-between">
-          <span className="font-bold text-sm text-gray-900">
-            {formattedPrice}
-          </span>
-          
+      {/* Conteúdo */}
+      <div className="p-3 flex flex-col flex-1">
+        <div className="flex-1">
+            <h3 className="text-sm font-bold text-gray-800 line-clamp-2 mb-1 leading-tight min-h-[2.5em]">
+            {product.name}
+            </h3>
+            {/* Tag discreta para identificar o tipo */}
+            {isBulk && (
+                <span className="inline-block text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded mb-1">
+                    Vendido por Peso
+                </span>
+            )}
+        </div>
+
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <div className="flex flex-col">
+             <span className="text-xs text-gray-400">Preço</span>
+             <span className="text-lg font-extrabold text-blue-900">
+               R$ {product.price.toFixed(2).replace('.', ',')}
+               <span className="text-xs font-normal text-gray-400">/{isBulk ? 'kg' : 'un'}</span>
+             </span>
+          </div>
+
           <button 
-            onClick={() => addToCart(product)}
-            className="bg-green-500 text-white w-7 h-7 rounded-full flex items-center justify-center hover:bg-green-600 active:scale-90 transition shadow-sm"
+            onClick={handleInteraction}
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition shadow-sm active:scale-90 flex-shrink-0
+                ${isBulk 
+                    ? 'bg-blue-100 text-blue-600 hover:bg-blue-200' // Botão Azul para Peso (Leva pra página)
+                    : adding 
+                        ? 'bg-green-500 text-white' 
+                        : 'bg-orange-500 text-white hover:bg-orange-600' // Botão Laranja para Unidade (Adiciona direto)
+                }
+            `}
           >
-            <Plus className="w-4 h-4" />
+            {isBulk ? (
+                <Scale className="w-4 h-4" /> // Ícone de balança para indicar "escolher"
+            ) : adding ? (
+                <span className="animate-ping w-2 h-2 bg-white rounded-full"></span>
+            ) : (
+                <Plus className="w-5 h-5" />
+            )}
           </button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

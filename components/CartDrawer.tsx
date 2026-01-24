@@ -22,11 +22,12 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [onClose]);
 
-  const formatQty = (qty: number) => {
-    // Se for inteiro (ex: 1, 2, 5), mostra "un"
-    if (Number.isInteger(qty)) return `${qty} un`;
-    // Se for decimal (ex: 0.500), mostra "kg"
-    return `${qty.toFixed(3).replace('.', ',')} kg`;
+  const formatQty = (qty: number, typeSale?: string) => {
+    // Se o banco diz que é 'bulk', sempre mostra KG
+    if (typeSale === 'bulk' || !Number.isInteger(qty)) {
+        return `${qty.toFixed(3).replace('.', ',')} kg`;
+    }
+    return `${qty} un`;
   };
 
   return (
@@ -63,8 +64,8 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             </div>
           ) : (
             items.map((item) => {
-              // Verifica se é item de peso (tem decimal)
-              const isBulk = !Number.isInteger(item.quantity);
+              // Verifica pelo campo do banco ou se é decimal
+              const isBulk = item.type_sale === 'bulk' || !Number.isInteger(item.quantity);
 
               return (
                 <div key={item.id} className="flex gap-3 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
@@ -80,7 +81,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     <div>
                       <h3 className="font-bold text-gray-800 text-sm line-clamp-2 leading-tight">{item.name}</h3>
                       <p className="text-xs text-gray-500 mt-1">
-                          {formatQty(item.quantity)} x R$ {item.price.toFixed(2).replace('.', ',')}
+                          {formatQty(item.quantity, item.type_sale)} x R$ {item.price.toFixed(2).replace('.', ',')}
                       </p>
                     </div>
                     
@@ -90,7 +91,6 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       </p>
                       
                       {isBulk ? (
-                        // ITEM DE PESO: Apenas botão de remover (para não quebrar a lógica de preço exato)
                         <button 
                             onClick={() => removeFromCart(item.id)}
                             className="text-xs text-red-400 hover:text-red-600 font-bold flex items-center gap-1 bg-red-50 px-2 py-1 rounded-lg"
@@ -98,7 +98,6 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                             <Trash2 className="w-3 h-3" /> Remover
                         </button>
                       ) : (
-                        // ITEM DE UNIDADE: Botões normais de + e -
                         <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-1">
                              <button 
                                 onClick={() => updateQuantity(item.id, item.quantity - 1)}
