@@ -30,6 +30,7 @@ export default function ProductPage() {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
+  // Estados de Controle
   const [adding, setAdding] = useState(false);
   const [qtyUnit, setQtyUnit] = useState(1);
   const [bulkMode, setBulkMode] = useState<'weight' | 'price'>('weight');
@@ -42,8 +43,6 @@ export default function ProductPage() {
       
       if (data) {
         setProduct(data);
-        // O banco agora diz se é 'unit' ou 'bulk'. Se for nulo, assume unit.
-        // Não precisamos mais da função identifyProductType complexa!
       }
       setLoading(false);
     }
@@ -92,8 +91,9 @@ export default function ProductPage() {
   const liked = isFavorite ? isFavorite(product.id) : false;
 
   return (
-    <div className="min-h-screen bg-white pb-40">
+    <div className="min-h-screen bg-white pb-48"> {/* Aumentei o padding bottom para nada esconder o conteudo */}
       
+      {/* Header Fixo Transparente */}
       <div className="fixed top-0 w-full p-4 flex justify-between items-center z-20 pointer-events-none">
         <button onClick={() => router.back()} className="pointer-events-auto bg-white/90 backdrop-blur shadow-sm p-2.5 rounded-full text-gray-700 border border-gray-100">
           <ArrowLeft className="w-6 h-6" />
@@ -103,6 +103,7 @@ export default function ProductPage() {
         </Link>
       </div>
 
+      {/* Imagem do Produto */}
       <div className="w-full h-[40vh] bg-gray-50 flex items-center justify-center p-8 relative">
         {product.image_url ? (
           <img src={product.image_url} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
@@ -111,8 +112,10 @@ export default function ProductPage() {
         )}
       </div>
 
+      {/* Conteúdo Principal */}
       <div className="-mt-8 bg-white rounded-t-[2.5rem] relative z-10 px-6 py-8 min-h-[60vh] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] border-t border-gray-100">
         
+        {/* Título e Favorito */}
         <div className="flex justify-between items-start gap-4">
           <div>
             <span className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider mb-2 ${productType === 'bulk' ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>
@@ -125,12 +128,14 @@ export default function ProductPage() {
           </button>
         </div>
         
+        {/* Preço Principal */}
         <div className="mt-4 flex items-baseline gap-1">
           <span className="text-sm font-medium text-gray-400">R$</span>
           <span className="text-4xl font-extrabold text-gray-900">{product.price.toFixed(2).replace('.', ',')}</span>
           <span className="text-sm font-medium text-gray-400">/{productType === 'bulk' ? 'kg' : 'un'}</span>
         </div>
 
+        {/* --- ÁREA DE CONTROLES (A Mágica Acontece Aqui) --- */}
         <div className="mt-8 p-5 bg-gray-50 rounded-2xl border border-gray-100">
           
           {productType === 'unit' ? (
@@ -193,24 +198,26 @@ export default function ProductPage() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 p-4 pb-safe z-30 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+      {/* --- BOTÃO FLUTUANTE ACIMA DO MENU --- */}
+      {/* Ajustado: bottom-20 (aprox 80px) para ficar acima do menu inferior que tem uns 60px */}
+      <div className="fixed bottom-20 left-4 right-4 z-50">
         <button 
           onClick={handleAddToCart}
           disabled={adding || finalQty <= 0}
-          className={`w-full max-w-md mx-auto py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98]
+          className={`w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all shadow-2xl active:scale-[0.98] border border-white/20 backdrop-blur-sm
             ${adding 
-                ? 'bg-green-500 text-white shadow-green-200' 
-                : finalQty > 0 ? 'bg-orange-500 text-white shadow-orange-200 hover:bg-orange-600' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}
+                ? 'bg-green-600 text-white shadow-green-900/20' 
+                : finalQty > 0 ? 'bg-blue-900 text-white shadow-blue-900/30 hover:bg-blue-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}
           `}
         >
           {adding ? (
-            <>Adicionado! <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span></>
+            <>Adicionado! <span className="animate-ping absolute inline-flex h-4 w-4 rounded-full bg-green-400 opacity-75 right-4"></span></>
           ) : (
             <>
-              <ShoppingCart className="w-5 h-5" />
+              <ShoppingCart className="w-6 h-6" />
               <div className="flex flex-col items-start leading-none">
-                <span className="text-xs opacity-90 font-normal">Adicionar ao carrinho</span>
-                <span className="text-lg">
+                <span className="text-[10px] uppercase tracking-wider opacity-80 font-normal">Adicionar ao carrinho</span>
+                <span className="text-xl">
                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
                 </span>
               </div>
