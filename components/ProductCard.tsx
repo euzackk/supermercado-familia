@@ -40,7 +40,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         href={`/produto/${product.id}`}
         className="block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow relative flex flex-col h-full"
     >
-      {/* Container da Imagem com altura fixa para evitar desalinhamento */}
+      {/* 1. Imagem com Altura Fixa (H-32 = 128px) */}
       <div className="relative h-32 w-full bg-gray-50 flex items-center justify-center p-4 flex-shrink-0">
         {product.image_url ? (
           <Image 
@@ -55,17 +55,17 @@ export default function ProductCard({ product }: ProductCardProps) {
         )}
       </div>
 
-      {/* Conteúdo do Card - Flex-1 garante que ocupe o espaço restante igualmente */}
+      {/* 2. Conteúdo com Flex-1 para empurrar o rodapé para baixo */}
       <div className="p-3 flex flex-col flex-1">
         
-        {/* Área do Título com Altura Fixa Forçada */}
-        <div className="min-h-[40px] mb-1"> 
-          <h3 className="text-sm font-bold text-gray-800 line-clamp-2 leading-tight overflow-hidden">
+        {/* 3. Título com Altura Mínima e Máxima Fixa (2 linhas) */}
+        <div className="h-10 mb-1 overflow-hidden"> 
+          <h3 className="text-sm font-bold text-gray-800 line-clamp-2 leading-tight">
             {product.name}
           </h3>
         </div>
 
-        {/* Área da Tag de Peso - Altura Fixa para não empurrar o preço */}
+        {/* 4. Área de Tags com Altura Fixa (H-5) */}
         <div className="h-5 mb-2">
           {isBulk && (
             <span className="inline-block text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
@@ -74,14 +74,17 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
 
-        {/* Rodapé do Card - Alinhado sempre na mesma posição inferior */}
+        {/* 5. Rodapé (Preço e Botão) sempre alinhado na base */}
         <div className="mt-auto flex items-center justify-between gap-2">
           <div className="flex flex-col">
-             <span className="text-[10px] text-gray-400 font-bold uppercase">Preço</span>
-             <span className="text-base font-extrabold text-blue-900 leading-none">
-               R$ {product.price.toFixed(2).replace('.', ',')}
-               <span className="text-[10px] font-normal text-gray-400 ml-0.5">/{isBulk ? 'kg' : 'un'}</span>
-             </span>
+             <span className="text-[10px] text-gray-400 font-bold uppercase leading-none">Preço</span>
+             <div className="flex items-baseline gap-0.5 mt-1">
+                <span className="text-[10px] font-bold text-blue-900">R$</span>
+                <span className="text-base font-extrabold text-blue-900 leading-none">
+                  {product.price.toFixed(2).replace('.', ',')}
+                </span>
+                <span className="text-[10px] font-normal text-gray-400">/{isBulk ? 'kg' : 'un'}</span>
+             </div>
           </div>
 
           <button 
