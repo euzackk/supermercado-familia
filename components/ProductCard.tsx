@@ -40,7 +40,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         href={`/produto/${product.id}`}
         className="block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow relative flex flex-col h-full"
     >
-      {/* Container da Imagem com altura fixa */}
+      {/* Container da Imagem com altura fixa para evitar desalinhamento */}
       <div className="relative h-32 w-full bg-gray-50 flex items-center justify-center p-4 flex-shrink-0">
         {product.image_url ? (
           <Image 
@@ -51,34 +51,34 @@ export default function ProductCard({ product }: ProductCardProps) {
             sizes="(max-width: 768px) 50vw, 33vw"
           />
         ) : (
-          <div className="text-gray-300 text-xs text-center">Sem foto</div>
+          <div className="text-gray-300 text-[10px] text-center">Sem foto</div>
         )}
       </div>
 
-      {/* Conteúdo com altura padronizada */}
-      <div className="p-3 flex flex-col flex-1 justify-between">
-        <div className="flex flex-col gap-1">
-            {/* Ajuste do Título:
-               - line-clamp-2: Limita a 2 linhas e coloca "..." se for maior.
-               - min-h-[2.5rem]: Garante que mesmo nomes curtos ocupem o espaço de 2 linhas.
-            */}
-            <h3 className="text-sm font-bold text-gray-800 line-clamp-2 leading-tight min-h-[2.5rem]">
-              {product.name}
-            </h3>
-            
-            <div className="h-4"> {/* Container fixo para a tag de peso para não mover o preço */}
-              {isBulk && (
-                  <span className="inline-block text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded leading-none">
-                      Vendido por Peso
-                  </span>
-              )}
-            </div>
+      {/* Conteúdo do Card - Flex-1 garante que ocupe o espaço restante igualmente */}
+      <div className="p-3 flex flex-col flex-1">
+        
+        {/* Área do Título com Altura Fixa Forçada */}
+        <div className="min-h-[40px] mb-1"> 
+          <h3 className="text-sm font-bold text-gray-800 line-clamp-2 leading-tight overflow-hidden">
+            {product.name}
+          </h3>
         </div>
 
-        <div className="mt-3 flex items-center justify-between gap-2">
+        {/* Área da Tag de Peso - Altura Fixa para não empurrar o preço */}
+        <div className="h-5 mb-2">
+          {isBulk && (
+            <span className="inline-block text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
+              Peso/Balança
+            </span>
+          )}
+        </div>
+
+        {/* Rodapé do Card - Alinhado sempre na mesma posição inferior */}
+        <div className="mt-auto flex items-center justify-between gap-2">
           <div className="flex flex-col">
-             <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Preço</span>
-             <span className="text-lg font-extrabold text-blue-900 leading-none">
+             <span className="text-[10px] text-gray-400 font-bold uppercase">Preço</span>
+             <span className="text-base font-extrabold text-blue-900 leading-none">
                R$ {product.price.toFixed(2).replace('.', ',')}
                <span className="text-[10px] font-normal text-gray-400 ml-0.5">/{isBulk ? 'kg' : 'un'}</span>
              </span>
