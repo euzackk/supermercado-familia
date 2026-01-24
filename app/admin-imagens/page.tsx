@@ -15,7 +15,10 @@ import {
   ChevronLeft,
   ChevronRight,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
+  Link as LinkIcon,
+  Save,
+  X
 } from 'lucide-react';
 
 // --- Tipos ---
@@ -24,6 +27,7 @@ type Product = {
   name: string;
   department: string;
   image_url: string | null;
+  code?: string; // Caso você tenha coluna de código de barras
 };
 
 type ToastType = {
@@ -39,19 +43,22 @@ export default function AdminImagensPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [filterMissing, setFilterMissing] = useState(true); // Começa mostrando quem falta foto
+  const [filterMissing, setFilterMissing] = useState(true);
   const [uploading, setUploading] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [currentPage, setCurrentPage] = useState(1);
   const [toasts, setToasts] = useState<ToastType[]>([]);
   const [dragActiveId, setDragActiveId] = useState<number | null>(null);
 
+  // Estados para Edição de URL
+  const [urlEditId, setUrlEditId] = useState<number | null>(null);
+  const [urlInputValue, setUrlInputValue] = useState('');
+
   // --- Efeitos ---
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  // Resetar página quando filtrar
   useEffect(() => {
     setCurrentPage(1);
   }, [search, filterMissing]);
@@ -65,9 +72,10 @@ export default function AdminImagensPage() {
 
   async function fetchProducts() {
     setLoading(true);
+    // Selecionando todas as colunas (*) para garantir que pegamos o 'code' se existir
     const { data, error } = await supabase
       .from('products')
-      .select('id, name, department, image_url')
+      .select('*')
       .order('name', { ascending: true });
     
     if (error) {
@@ -81,7 +89,13 @@ export default function AdminImagensPage() {
   // --- Lógica de Filtragem e Paginação ---
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
-      const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
+      const termo = search.toLowerCase();
+      // Busca por nome ou pelo código (ID ou Code)
+      const matchesSearch = 
+        p.name.toLowerCase().includes(termo) || 
+        String(p.id).includes(termo) ||
+        (p.code && String(p.code).toLowerCase().includes(termo));
+
       const matchesFilter = filterMissing ? !p.image_url : true;
       return matchesSearch && matchesFilter;
     });
@@ -104,13 +118,13 @@ export default function AdminImagensPage() {
 
   // --- Manipuladores de Ação ---
 
+  // Upload via Arquivo Local
   async function handleUpload(file: File, productId: number) {
-    // Validação básica
     if (!file.type.startsWith('image/')) {
       showToast('Por favor, envie apenas arquivos de imagem.', 'error');
       return;
     }
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+    if (file.size > 5 * 1024 * 1024) {
       showToast('A imagem deve ter no máximo 5MB.', 'error');
       return;
     }
@@ -119,63 +133,75 @@ export default function AdminImagensPage() {
       setUploading(String(productId));
       
       const fileExt = file.name.split('.').pop();
-      // Usar timestamp garante que o navegador não faça cache da imagem antiga
       const fileName = `${productId}-${Date.now()}.${fileExt}`;
       const filePath = `product-images/${fileName}`;
 
-      // 1. Upload
       const { error: uploadError } = await supabase.storage
         .from('products')
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      // 2. Get URL
       const { data: { publicUrl } } = supabase.storage
         .from('products')
         .getPublicUrl(filePath);
 
-      // 3. Update DB
-      const { error: updateError } = await supabase
-        .from('products')
-        .update({ image_url: publicUrl })
-        .eq('id', productId);
-
-      if (updateError) throw updateError;
-
-      // 4. Update State Local
-      setProducts(prev => prev.map(p => 
-        p.id === productId ? { ...p, image_url: publicUrl } : p
-      ));
+      await updateProductImage(productId, publicUrl);
       
       showToast('Imagem atualizada com sucesso!', 'success');
 
     } catch (error) {
       console.error(error);
-      showToast('Erro ao fazer upload da imagem.', 'error');
+      showToast('Erro ao fazer upload.', 'error');
     } finally {
       setUploading(null);
       setDragActiveId(null);
     }
   }
 
-  async function handleRemoveImage(productId: number) {
-    if (!confirm('Tem certeza que deseja remover a imagem deste produto?')) return;
+  // Atualizar via URL Externa
+  async function handleUrlSave(productId: number) {
+    if (!urlInputValue.trim()) return;
+
+    // Validação simples de URL
+    if (!urlInputValue.startsWith('http')) {
+      showToast('A URL deve começar com http:// ou https://', 'error');
+      return;
+    }
 
     try {
       setUploading(String(productId));
-      
-      const { error } = await supabase
+      await updateProductImage(productId, urlInputValue);
+      showToast('Link vinculado com sucesso!', 'success');
+      setUrlEditId(null);
+      setUrlInputValue('');
+    } catch (error) {
+      console.error(error);
+      showToast('Erro ao salvar URL.', 'error');
+    } finally {
+      setUploading(null);
+    }
+  }
+
+  // Função centralizada para atualizar banco e estado
+  async function updateProductImage(productId: number, newUrl: string | null) {
+    const { error } = await supabase
         .from('products')
-        .update({ image_url: null })
+        .update({ image_url: newUrl })
         .eq('id', productId);
 
-      if (error) throw error;
+    if (error) throw error;
 
-      setProducts(prev => prev.map(p => 
-        p.id === productId ? { ...p, image_url: null } : p
-      ));
-      
+    setProducts(prev => prev.map(p => 
+      p.id === productId ? { ...p, image_url: newUrl } : p
+    ));
+  }
+
+  async function handleRemoveImage(productId: number) {
+    if (!confirm('Tem certeza que deseja remover a imagem deste produto?')) return;
+    try {
+      setUploading(String(productId));
+      await updateProductImage(productId, null);
       showToast('Imagem removida.', 'success');
     } catch (error) {
       console.error(error);
@@ -185,7 +211,7 @@ export default function AdminImagensPage() {
     }
   }
 
-  // Drag and Drop Handlers
+  // Drag and Drop
   const handleDrag = useCallback((e: React.DragEvent, id: number | null) => {
     e.preventDefault();
     e.stopPropagation();
@@ -200,7 +226,6 @@ export default function AdminImagensPage() {
     e.preventDefault();
     e.stopPropagation();
     setDragActiveId(null);
-    
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleUpload(e.dataTransfer.files[0], productId);
     }
@@ -208,10 +233,10 @@ export default function AdminImagensPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Toast Notification Container */}
-      <div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
+      {/* Toast Notification */}
+      <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
         {toasts.map(t => (
-          <div key={t.id} className={`flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg border animate-in slide-in-from-right-full ${
+          <div key={t.id} className={`flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg border animate-in slide-in-from-right-full pointer-events-auto ${
             t.type === 'success' ? 'bg-white border-green-200 text-green-700' : 'bg-white border-red-200 text-red-700'
           }`}>
             {t.type === 'success' ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
@@ -245,7 +270,6 @@ export default function AdminImagensPage() {
                   <span className="text-xl font-bold text-green-500">{stats.percentage}%</span>
                 </div>
               </div>
-              {/* Barra de progresso visual no fundo */}
               <div className="absolute bottom-0 left-0 h-1 bg-green-500 transition-all duration-1000" style={{ width: `${stats.percentage}%` }}></div>
             </div>
 
@@ -263,7 +287,7 @@ export default function AdminImagensPage() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input 
               type="text"
-              placeholder="Buscar por nome, marca ou categoria..."
+              placeholder="Buscar por nome, código ou ID..."
               className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -271,7 +295,6 @@ export default function AdminImagensPage() {
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0">
-            {/* Filtro Toggle */}
             <button 
               onClick={() => setFilterMissing(!filterMissing)}
               className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition whitespace-nowrap ${
@@ -284,7 +307,6 @@ export default function AdminImagensPage() {
               {filterMissing ? 'Pendentes' : 'Todos'}
             </button>
 
-            {/* View Toggle */}
             <div className="flex bg-white rounded-xl border border-gray-200 p-1">
               <button 
                 onClick={() => setViewMode('grid')}
@@ -302,7 +324,7 @@ export default function AdminImagensPage() {
           </div>
         </div>
 
-        {/* --- Conteúdo Principal --- */}
+        {/* --- Conteúdo --- */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
@@ -313,7 +335,7 @@ export default function AdminImagensPage() {
             {paginatedProducts.length === 0 ? (
               <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
                 <AlertTriangle className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 font-medium">Nenhum produto encontrado com os filtros atuais.</p>
+                <p className="text-gray-500 font-medium">Nenhum produto encontrado.</p>
                 <button 
                   onClick={() => { setSearch(''); setFilterMissing(false); }}
                   className="mt-4 text-blue-600 font-bold text-sm hover:underline"
@@ -340,7 +362,7 @@ export default function AdminImagensPage() {
                       ${dragActiveId === product.id ? 'border-2 border-dashed border-blue-500 bg-blue-50 ring-4 ring-blue-100' : 'border-gray-100 shadow-sm'}
                     `}
                   >
-                    {/* Área da Imagem */}
+                    {/* 1. Imagem */}
                     <div className={`
                       relative overflow-hidden bg-gray-50 border border-gray-100 flex items-center justify-center
                       ${viewMode === 'grid' ? 'w-full h-48 rounded-xl mb-4' : 'w-16 h-16 rounded-lg flex-shrink-0'}
@@ -351,14 +373,12 @@ export default function AdminImagensPage() {
                         <ImageIcon className="text-gray-300" size={viewMode === 'grid' ? 48 : 24} />
                       )}
                       
-                      {/* Overlay de Uploading */}
                       {uploading === String(product.id) && (
                         <div className="absolute inset-0 bg-white/90 flex items-center justify-center z-10">
                           <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
                         </div>
                       )}
 
-                      {/* Overlay de Drag Drop Dica */}
                       {dragActiveId === product.id && (
                         <div className="absolute inset-0 bg-blue-500/10 flex items-center justify-center z-20 backdrop-blur-[1px]">
                           <p className="text-blue-600 font-bold bg-white px-3 py-1 rounded-full shadow-sm text-xs pointer-events-none">
@@ -368,46 +388,99 @@ export default function AdminImagensPage() {
                       )}
                     </div>
 
-                    {/* Informações */}
+                    {/* 2. Informações */}
                     <div className="flex-1 min-w-0">
                       <h3 className={`font-bold text-gray-800 truncate ${viewMode === 'grid' ? 'text-base' : 'text-sm'}`}>
                         {product.name}
                       </h3>
-                      <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-3">
-                        {product.department || 'Sem departamento'}
-                      </p>
-
-                      {/* Ações */}
-                      <div className="flex items-center gap-2">
-                        <label className={`
-                          flex-1 flex items-center justify-center gap-2 cursor-pointer transition rounded-lg font-bold text-xs py-2
-                          ${product.image_url 
-                             ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' 
-                             : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-200'}
-                        `}>
-                          <input 
-                            type="file" 
-                            className="hidden" 
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleUpload(file, product.id);
-                            }}
-                          />
-                          <Upload size={14} />
-                          {product.image_url ? 'Trocar' : 'Enviar Foto'}
-                        </label>
-
-                        {product.image_url && (
-                          <button 
-                            onClick={() => handleRemoveImage(product.id)}
-                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition"
-                            title="Remover imagem"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                      
+                      {/* NOVO: Exibição dos códigos */}
+                      <div className="flex flex-wrap gap-2 mb-3 mt-1">
+                        <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-mono border border-gray-200">
+                          ID: {product.id}
+                        </span>
+                        {product.code && (
+                          <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-mono border border-blue-100">
+                            REF: {product.code}
+                          </span>
                         )}
+                        <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wide self-center">
+                          {product.department}
+                        </span>
                       </div>
+
+                      {/* 3. Área de Ações (Upload Local vs URL) */}
+                      {urlEditId === product.id ? (
+                        // MODO EDIÇÃO DE URL
+                        <div className="flex items-center gap-2 animate-in fade-in zoom-in-95 duration-200">
+                          <input 
+                            type="text" 
+                            className="flex-1 text-xs border border-blue-300 rounded-lg px-2 py-2 outline-none focus:ring-2 focus:ring-blue-100"
+                            placeholder="Cole o link da imagem..."
+                            value={urlInputValue}
+                            onChange={(e) => setUrlInputValue(e.target.value)}
+                            autoFocus
+                          />
+                          <button 
+                            onClick={() => handleUrlSave(product.id)}
+                            className="bg-green-500 text-white p-2 rounded-lg hover:bg-green-600 transition"
+                            title="Salvar Link"
+                          >
+                            <Save size={14} />
+                          </button>
+                          <button 
+                            onClick={() => { setUrlEditId(null); setUrlInputValue(''); }}
+                            className="bg-gray-100 text-gray-500 p-2 rounded-lg hover:bg-gray-200 transition"
+                            title="Cancelar"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        // MODO BOTÕES NORMAIS
+                        <div className="flex items-center gap-2">
+                          <label className={`
+                            flex-1 flex items-center justify-center gap-2 cursor-pointer transition rounded-lg font-bold text-xs py-2
+                            ${product.image_url 
+                               ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' 
+                               : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-200'}
+                          `}>
+                            <input 
+                              type="file" 
+                              className="hidden" 
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleUpload(file, product.id);
+                              }}
+                            />
+                            <Upload size={14} />
+                            {product.image_url ? 'Trocar Arq.' : 'Enviar Foto'}
+                          </label>
+
+                          {/* Botão de Link URL */}
+                          <button 
+                            onClick={() => {
+                              setUrlEditId(product.id);
+                              setUrlInputValue('');
+                            }}
+                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-500 hover:bg-indigo-100 transition border border-indigo-100"
+                            title="Usar link externo"
+                          >
+                            <LinkIcon size={14} />
+                          </button>
+
+                          {product.image_url && (
+                            <button 
+                              onClick={() => handleRemoveImage(product.id)}
+                              className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition border border-red-100"
+                              title="Remover imagem"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
