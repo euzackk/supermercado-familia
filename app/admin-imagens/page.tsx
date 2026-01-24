@@ -18,7 +18,8 @@ import {
   AlertTriangle,
   Link as LinkIcon,
   Save,
-  X
+  X,
+  Barcode
 } from 'lucide-react';
 
 // --- Tipos ---
@@ -27,7 +28,7 @@ type Product = {
   name: string;
   department: string;
   image_url: string | null;
-  code?: string; // Caso você tenha coluna de código de barras
+  barcode?: string; // Coluna do seu banco de dados
 };
 
 type ToastType = {
@@ -36,7 +37,7 @@ type ToastType = {
   message: string;
 };
 
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 24; // Aumentei um pouco para ver mais itens por página
 
 export default function AdminImagensPage() {
   // --- Estados ---
@@ -72,13 +73,15 @@ export default function AdminImagensPage() {
 
   async function fetchProducts() {
     setLoading(true);
-    // Selecionando todas as colunas (*) para garantir que pegamos o 'code' se existir
+    // CORREÇÃO: Adicionado .range(0, 4999) para quebrar o limite de 1000 linhas do Supabase
     const { data, error } = await supabase
       .from('products')
-      .select('*')
-      .order('name', { ascending: true });
+      .select('*') 
+      .order('name', { ascending: true })
+      .range(0, 4999); 
     
     if (error) {
+      console.error('Erro Supabase:', error);
       showToast('Erro ao carregar produtos', 'error');
     } else if (data) {
       setProducts(data);
@@ -90,11 +93,10 @@ export default function AdminImagensPage() {
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
       const termo = search.toLowerCase();
-      // Busca por nome ou pelo código (ID ou Code)
+      // Busca por nome ou pelo Barcode
       const matchesSearch = 
         p.name.toLowerCase().includes(termo) || 
-        String(p.id).includes(termo) ||
-        (p.code && String(p.code).toLowerCase().includes(termo));
+        (p.barcode && String(p.barcode).toLowerCase().includes(termo));
 
       const matchesFilter = filterMissing ? !p.image_url : true;
       return matchesSearch && matchesFilter;
@@ -119,7 +121,7 @@ export default function AdminImagensPage() {
   // --- Manipuladores de Ação ---
 
   // Upload via Arquivo Local
-  async function handleUpload(file: File, productId: number) {
+  async function handleUpload(file: File, product: Product) {
     if (!file.type.startsWith('image/')) {
       showToast('Por favor, envie apenas arquivos de imagem.', 'error');
       return;
@@ -130,23 +132,33 @@ export default function AdminImagensPage() {
     }
 
     try {
-      setUploading(String(productId));
+      setUploading(String(product.id));
       
       const fileExt = file.name.split('.').pop();
-      const fileName = `${productId}-${Date.now()}.${fileExt}`;
+      // MELHORIA: Usa o BARCODE no nome do arquivo se existir, senão usa o ID
+      const identifier = product.barcode ? product.barcode : product.id;
+      const fileName = `${identifier}.${fileExt}`; // Ex: 789123456.jpg
+      
+      // Timestamp query param para "quebrar" o cache do navegador ao atualizar a mesma imagem
+      const cacheBuster = Date.now(); 
       const filePath = `product-images/${fileName}`;
 
+      // 1. Upload com Upsert (Sobrescreve se existir)
       const { error: uploadError } = await supabase.storage
         .from('products')
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
+      // 2. Pega URL Pública
       const { data: { publicUrl } } = supabase.storage
         .from('products')
         .getPublicUrl(filePath);
 
-      await updateProductImage(productId, publicUrl);
+      // Adiciona timestamp na URL para forçar atualização visual imediata
+      const finalUrl = `${publicUrl}?t=${cacheBuster}`;
+
+      await updateProductImage(product.id, finalUrl);
       
       showToast('Imagem atualizada com sucesso!', 'success');
 
@@ -163,7 +175,6 @@ export default function AdminImagensPage() {
   async function handleUrlSave(productId: number) {
     if (!urlInputValue.trim()) return;
 
-    // Validação simples de URL
     if (!urlInputValue.startsWith('http')) {
       showToast('A URL deve começar com http:// ou https://', 'error');
       return;
@@ -183,7 +194,6 @@ export default function AdminImagensPage() {
     }
   }
 
-  // Função centralizada para atualizar banco e estado
   async function updateProductImage(productId: number, newUrl: string | null) {
     const { error } = await supabase
         .from('products')
@@ -222,12 +232,12 @@ export default function AdminImagensPage() {
     }
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent, productId: number) => {
+  const handleDrop = useCallback((e: React.DragEvent, product: Product) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActiveId(null);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleUpload(e.dataTransfer.files[0], productId);
+      handleUpload(e.dataTransfer.files[0], product);
     }
   }, []);
 
@@ -287,7 +297,7 @@ export default function AdminImagensPage() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input 
               type="text"
-              placeholder="Buscar por nome, código ou ID..."
+              placeholder="Buscar por nome ou código de barras..."
               className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -328,7 +338,7 @@ export default function AdminImagensPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
-            <p className="mt-4 text-gray-500 font-medium">Carregando catálogo...</p>
+            <p className="mt-4 text-gray-500 font-medium">Carregando estoque...</p>
           </div>
         ) : (
           <>
@@ -355,7 +365,7 @@ export default function AdminImagensPage() {
                     onDragEnter={(e) => handleDrag(e, product.id)}
                     onDragLeave={(e) => handleDrag(e, null)}
                     onDragOver={(e) => handleDrag(e, product.id)}
-                    onDrop={(e) => handleDrop(e, product.id)}
+                    onDrop={(e) => handleDrop(e, product)}
                     className={`
                       relative group bg-white border transition-all duration-200
                       ${viewMode === 'grid' ? 'rounded-2xl p-4 hover:shadow-lg' : 'rounded-xl p-3 flex items-center gap-4 hover:border-blue-300'}
@@ -394,24 +404,26 @@ export default function AdminImagensPage() {
                         {product.name}
                       </h3>
                       
-                      {/* NOVO: Exibição dos códigos */}
+                      {/* CÓDIGO DE BARRAS / ID */}
                       <div className="flex flex-wrap gap-2 mb-3 mt-1">
-                        <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-mono border border-gray-200">
-                          ID: {product.id}
-                        </span>
-                        {product.code && (
-                          <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-mono border border-blue-100">
-                            REF: {product.code}
+                        {product.barcode ? (
+                          <span className="flex items-center gap-1 text-[11px] bg-blue-50 text-blue-700 px-2 py-1 rounded font-mono font-bold border border-blue-100" title="Código de Barras">
+                            <Barcode size={12} />
+                            {product.barcode}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-mono border border-gray-200" title="ID Interno">
+                            ID: {product.id}
                           </span>
                         )}
-                        <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wide self-center">
+                        
+                        <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wide self-center truncate">
                           {product.department}
                         </span>
                       </div>
 
-                      {/* 3. Área de Ações (Upload Local vs URL) */}
+                      {/* 3. Área de Ações */}
                       {urlEditId === product.id ? (
-                        // MODO EDIÇÃO DE URL
                         <div className="flex items-center gap-2 animate-in fade-in zoom-in-95 duration-200">
                           <input 
                             type="text" 
@@ -437,7 +449,6 @@ export default function AdminImagensPage() {
                           </button>
                         </div>
                       ) : (
-                        // MODO BOTÕES NORMAIS
                         <div className="flex items-center gap-2">
                           <label className={`
                             flex-1 flex items-center justify-center gap-2 cursor-pointer transition rounded-lg font-bold text-xs py-2
@@ -451,14 +462,13 @@ export default function AdminImagensPage() {
                               accept="image/*"
                               onChange={(e) => {
                                 const file = e.target.files?.[0];
-                                if (file) handleUpload(file, product.id);
+                                if (file) handleUpload(file, product);
                               }}
                             />
                             <Upload size={14} />
-                            {product.image_url ? 'Trocar Arq.' : 'Enviar Foto'}
+                            {product.image_url ? 'Trocar' : 'Enviar'}
                           </label>
 
-                          {/* Botão de Link URL */}
                           <button 
                             onClick={() => {
                               setUrlEditId(product.id);
