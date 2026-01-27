@@ -1,56 +1,45 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-type Product = {
-  id: number;
-  name: string;
-  price: number;
-  department: string;
-  image_url?: string;
-};
+// 1. IMPORTANTE: Importe o Product do CartContext em vez de redefinir
+import { Product } from './CartContext'; 
 
 type FavoritesContextType = {
   favorites: Product[];
   toggleFavorite: (product: Product) => void;
-  isFavorite: (id: number) => boolean;
+  isFavorite: (productId: number) => boolean;
 };
 
-const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
+const FavoritesContext = createContext<FavoritesContextType>({} as FavoritesContextType);
 
 export function FavoritesProvider({ children }: { children: ReactNode }) {
   const [favorites, setFavorites] = useState<Product[]>([]);
 
-  // Carrega do LocalStorage ao iniciar
   useEffect(() => {
-    const saved = localStorage.getItem('favorites-storage');
-    if (saved) {
-      try {
-        setFavorites(JSON.parse(saved));
-      } catch (e) {
-        console.error("Erro ao ler favoritos", e);
-      }
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('familia_favorites');
+      if (stored) setFavorites(JSON.parse(stored));
     }
   }, []);
 
-  // Salva no LocalStorage sempre que mudar
   useEffect(() => {
-    localStorage.setItem('favorites-storage', JSON.stringify(favorites));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('familia_favorites', JSON.stringify(favorites));
+    }
   }, [favorites]);
 
   const toggleFavorite = (product: Product) => {
     setFavorites(prev => {
-      const exists = prev.find(p => p.id === product.id);
+      const exists = prev.some(p => p.id === product.id);
       if (exists) {
-        return prev.filter(p => p.id !== product.id); // Remove
-      } else {
-        return [...prev, product]; // Adiciona
+        return prev.filter(p => p.id !== product.id);
       }
+      return [...prev, product];
     });
   };
 
-  const isFavorite = (id: number) => {
-    return favorites.some(p => p.id === id);
+  const isFavorite = (productId: number) => {
+    return favorites.some(p => p.id === productId);
   };
 
   return (
@@ -60,15 +49,4 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export const useFavorites = () => {
-  const context = useContext(FavoritesContext);
-  // Retornamos um objeto vazio ou funções dummy se o contexto falhar, para não quebrar a app
-  if (!context) {
-    return {
-      favorites: [],
-      toggleFavorite: () => {},
-      isFavorite: () => false
-    };
-  }
-  return context;
-};
+export const useFavorites = () => useContext(FavoritesContext);
