@@ -5,6 +5,7 @@ import AppLayoutWrapper from "@/components/AppLayoutWrapper";
 import { CartProvider } from "@/context/CartContext";
 import { FavoritesProvider } from "@/context/FavoritesContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { Toaster } from "sonner"; // <--- Importação adicionada
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,11 +24,11 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Supermercado Família", // NOME INTEIRO PARA IPHONE
+    title: "Supermercado Família",
   },
   icons: {
     icon: "/logo-app.png",
-    apple: "/logo-app.png", // Ícone para iPhone
+    apple: "/logo-app.png",
   },
 };
 
@@ -45,6 +46,8 @@ export default function RootLayout({
               <AppLayoutWrapper>
                 {children}
               </AppLayoutWrapper>
+              {/* Componente de notificações adicionado aqui */}
+              <Toaster position="top-center" richColors />
             </FavoritesProvider>
           </CartProvider>
         </AuthProvider>
