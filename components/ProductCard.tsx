@@ -1,7 +1,8 @@
 'use client';
 
-import { Plus, Scale } from 'lucide-react';
+import { Plus, Scale, Heart } from 'lucide-react'; // Importei o Heart
 import { useCart, Product } from '@/context/CartContext';
+import { useFavorites } from '@/context/FavoritesContext'; // <--- Importe seu contexto
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -11,13 +12,22 @@ interface ProductCardProps {
   product: Product;
 }
 
+// Se o seu contexto de favoritos não exportar um hook 'useFavorites', 
+// certifique-se de criar ou ajustar a importação acima.
+// Vou assumir que ele tem a função toggleFavorite e isFavorite.
+
 export default function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
+  
+  // Assumindo que seu FavoritesContext tem essas funções. 
+  // Se não tiver, me avise que ajustamos o Contexto.
+  const { toggleFavorite, isFavorite } = useFavorites(); 
+  
   const router = useRouter();
   const [adding, setAdding] = useState(false);
 
-  // Verifica se é produto de balança (Bulk)
   const isBulk = product.type_sale === 'bulk';
+  const isFav = isFavorite ? isFavorite(product.id) : false; // Proteção caso o contexto não esteja pronto
 
   const handleInteraction = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -33,7 +43,14 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleQuickAdd = () => {
     setAdding(true);
     addToCart(product, 1);
+    // Feedback visual rápido de "Piscada"
     setTimeout(() => setAdding(false), 500);
+  };
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (toggleFavorite) toggleFavorite(product);
   };
 
   return (
@@ -41,7 +58,17 @@ export default function ProductCard({ product }: ProductCardProps) {
         href={`/produto/${product.id}`}
         className="group block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all relative flex flex-col h-full"
     >
-      {/* 1. CONTAINER DA IMAGEM: Altura fixa obrigatória */}
+      {/* Botão de Favorito Flutuante */}
+      <button 
+        onClick={handleFavoriteClick}
+        className="absolute top-2 right-2 z-10 p-2 rounded-full bg-white/80 hover:bg-white shadow-sm transition-transform active:scale-90"
+      >
+        <Heart 
+            className={`w-4 h-4 transition-colors ${isFav ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
+        />
+      </button>
+
+      {/* 1. CONTAINER DA IMAGEM */}
       <div className="relative h-36 w-full bg-gray-50/50 flex items-center justify-center p-4 flex-shrink-0 border-b border-gray-50">
         {product.image_url ? (
           <Image 
@@ -52,21 +79,25 @@ export default function ProductCard({ product }: ProductCardProps) {
             sizes="(max-width: 768px) 50vw, 33vw"
           />
         ) : (
-          <div className="text-gray-300 text-[10px] font-bold uppercase tracking-tighter">Sem Imagem</div>
+            // Placeholder melhorado
+          <div className="flex flex-col items-center justify-center text-gray-300">
+             <div className="w-8 h-8 rounded-full bg-gray-200 mb-1" />
+             <span className="text-[10px] font-bold uppercase tracking-tighter">Sem Foto</span>
+          </div>
         )}
       </div>
 
-      {/* 2. CONTEÚDO: Espaçamento interno padronizado */}
+      {/* 2. CONTEÚDO */}
       <div className="p-3 flex flex-col flex-1">
         
-        {/* 3. ÁREA DO TÍTULO: Altura fixa (h-10) garante 2 linhas sempre */}
+        {/* Título */}
         <div className="h-10 mb-1 flex items-start overflow-hidden"> 
           <h3 className="text-sm font-bold text-gray-800 line-clamp-2 leading-tight">
             {product.name}
           </h3>
         </div>
 
-        {/* 4. ÁREA DA ETIQUETA: Altura fixa (h-5) para alinhar o preço abaixo */}
+        {/* Etiqueta */}
         <div className="h-5 mb-2 flex items-center">
           {isBulk ? (
             <span className="text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider">
@@ -79,7 +110,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
 
-        {/* 5. RODAPÉ: mt-auto empurra o preço para a base do card */}
+        {/* Rodapé e Botão de Ação */}
         <div className="mt-auto pt-2 flex items-end justify-between gap-1 border-t border-gray-50">
           <div className="flex flex-col">
              <span className="text-[9px] text-gray-400 font-bold uppercase leading-none">Preço</span>
@@ -98,7 +129,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 ${isBulk 
                     ? 'bg-blue-600 text-white hover:bg-blue-700' 
                     : adding 
-                        ? 'bg-green-500 text-white' 
+                        ? 'bg-green-500 text-white shadow-green-200' 
                         : 'bg-orange-500 text-white hover:bg-orange-600 shadow-orange-200'
                 }
             `}
@@ -106,7 +137,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             {isBulk ? (
                 <Scale className="w-5 h-5" />
             ) : adding ? (
-                <span className="animate-ping w-2 h-2 bg-white rounded-full"></span>
+                <Plus className="w-6 h-6 animate-pulse" /> // Mudei para icone fixo com pulse
             ) : (
                 <Plus className="w-6 h-6" />
             )}
