@@ -40,7 +40,7 @@ export default function Header({ onOpenCart, onOpenMenu }: HeaderProps) {
       
       <Link href="/" className="relative h-10 w-32 cursor-pointer active:opacity-80 transition"> 
          <Image 
-           src="/logo-app.png" 
+           src="/logo.png" 
            alt="Supermercado Família" 
            fill 
            className="object-contain object-center" 
