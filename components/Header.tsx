@@ -1,8 +1,8 @@
 'use client';
 
-import { Menu, ShoppingCart, RotateCw } from 'lucide-react'; // Adicionei RotateCw
+import { Menu, ShoppingCart, RotateCw } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link'; // Importar Link
+import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 
 interface HeaderProps {
@@ -13,16 +13,15 @@ interface HeaderProps {
 export default function Header({ onOpenCart, onOpenMenu }: HeaderProps) {
   const { cartCount } = useCart();
 
-  // Função para recarregar a página forçadamente
   const handleReload = () => {
     window.location.reload();
   };
 
   return (
-    <header className="flex items-center justify-between px-4 py-3 bg-white sticky top-0 z-30 shadow-sm border-b border-gray-100">
+    // Removemos 'sticky', 'top-0', 'shadow' e 'border-b' daqui, pois o Layout pai já controla isso.
+    <header className="flex items-center justify-between px-4 py-3 bg-white w-full">
       
       <div className="flex items-center gap-2">
-        {/* Botão de Menu */}
         <button 
           onClick={onOpenMenu}
           className="p-1 text-gray-600 hover:bg-gray-100 rounded-full transition active:scale-90"
@@ -30,7 +29,6 @@ export default function Header({ onOpenCart, onOpenMenu }: HeaderProps) {
           <Menu className="w-7 h-7" />
         </button>
 
-        {/* Botão de Recarregar (Refresh) */}
         <button 
           onClick={handleReload}
           className="p-1 text-blue-600 hover:bg-blue-50 rounded-full transition active:scale-90"
@@ -40,10 +38,9 @@ export default function Header({ onOpenCart, onOpenMenu }: HeaderProps) {
         </button>
       </div>
       
-      {/* Logo com Link para Home */}
       <Link href="/" className="relative h-10 w-32 cursor-pointer active:opacity-80 transition"> 
          <Image 
-           src="/logo.png" 
+           src="/logo-app.png" 
            alt="Supermercado Família" 
            fill 
            className="object-contain object-center" 
