@@ -5,74 +5,17 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { Search, Save, Link as LinkIcon, AlertCircle, Lock, Bug } from 'lucide-react';
 
-// --- CONFIGURAÇÃO ---
-// ⚠️ IMPORTANTE: Certifique-se de que seu e-mail está exatamente igual aqui
+// ⚠️ SEU EMAIL AQUI
 const ADMIN_EMAILS = ['isaacmelo592@gmail.com']; 
 
 export default function ImageManager() {
-  const { user, loading: authLoading } = useAuth(); // Pegando loading do Auth também
+  const { user, loading: authLoading } = useAuth();
   const [products, setProducts] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Se o Auth ainda estiver carregando, mostra um "Aguarde..."
-  if (authLoading) {
-    return <div className="flex h-screen items-center justify-center">Verificando usuário...</div>;
-  }
+  // --- CORREÇÃO: Hooks e Funções SEMPRE no topo, antes de qualquer return ---
   
-  // 🔒 BLOQUEIO DE SEGURANÇA (COM DIAGNÓSTICO)
-  // Verificamos se o usuário existe E se o email está na lista
-  if (!user || !user.email || !ADMIN_EMAILS.includes(user.email)) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen text-center p-6 bg-gray-50">
-        <div className="bg-red-100 p-4 rounded-full mb-4">
-            <Lock className="w-8 h-8 text-red-600" />
-        </div>
-        <h1 className="text-2xl font-bold text-gray-800">Acesso Negado</h1>
-        
-        {/* --- ÁREA DE DIAGNÓSTICO --- */}
-        <div className="mt-6 bg-white p-6 rounded-xl border border-gray-200 shadow-sm max-w-md w-full text-left">
-            <h3 className="flex items-center gap-2 font-bold text-gray-800 mb-4 border-b pb-2">
-                <Bug className="w-4 h-4 text-orange-500"/> Diagnóstico de Erro
-            </h3>
-            
-            <div className="space-y-3 text-sm">
-                <div>
-                    <p className="text-gray-500 text-xs uppercase font-bold">Status do Login:</p>
-                    <p className={user ? "text-green-600 font-bold" : "text-red-600 font-bold"}>
-                        {user ? "Usuário Logado" : "Nenhum usuário detectado"}
-                    </p>
-                </div>
-
-                <div>
-                    <p className="text-gray-500 text-xs uppercase font-bold">O Sistema leu seu e-mail como:</p>
-                    <div className="bg-gray-100 p-2 rounded border font-mono text-gray-700 break-all">
-                        {user?.email || "(Vazio / Não encontrado)"}
-                    </div>
-                </div>
-
-                <div>
-                    <p className="text-gray-500 text-xs uppercase font-bold">E-mail esperado na lista:</p>
-                    <div className="bg-blue-50 p-2 rounded border border-blue-100 font-mono text-blue-700 break-all">
-                        {ADMIN_EMAILS.join(', ')}
-                    </div>
-                </div>
-
-                <div className="bg-orange-50 p-3 rounded text-orange-800 text-xs mt-4">
-                    <strong>Dica:</strong> Verifique se há letras maiúsculas/minúsculas diferentes ou espaços em branco no final.
-                </div>
-            </div>
-        </div>
-      </div>
-    );
-  }
-
-  // --- CÓDIGO NORMAL DA PÁGINA (SÓ EXECUTA SE PASSAR DO BLOQUEIO) ---
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
   async function fetchProducts() {
     setLoading(true);
     const { data } = await supabase
@@ -98,6 +41,44 @@ export default function ImageManager() {
     }
   }
 
+  useEffect(() => {
+    // Só buscamos produtos se o usuário estiver validado
+    if (!authLoading && user && user.email && ADMIN_EMAILS.includes(user.email)) {
+        fetchProducts();
+    }
+  }, [authLoading, user]); // Array de dependências correto
+
+  // --- AGORA SIM: As verificações condicionais (Returns) ---
+
+  if (authLoading) {
+    return <div className="flex h-screen items-center justify-center">Verificando usuário...</div>;
+  }
+  
+  // Bloqueio de Segurança
+  if (!user || !user.email || !ADMIN_EMAILS.includes(user.email)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen text-center p-6 bg-gray-50">
+        <div className="bg-red-100 p-4 rounded-full mb-4">
+            <Lock className="w-8 h-8 text-red-600" />
+        </div>
+        <h1 className="text-2xl font-bold text-gray-800">Acesso Negado</h1>
+        
+        {/* Diagnóstico (Pode remover depois) */}
+        <div className="mt-6 bg-white p-6 rounded-xl border border-gray-200 shadow-sm max-w-md w-full text-left">
+            <h3 className="flex items-center gap-2 font-bold text-gray-800 mb-4 border-b pb-2">
+                <Bug className="w-4 h-4 text-orange-500"/> Diagnóstico
+            </h3>
+            <div className="space-y-3 text-sm">
+                <p>Status: <span className={user ? "text-green-600" : "text-red-600"}>{user ? "Logado" : "Não Logado"}</span></p>
+                <p>Seu Email: <strong>{user?.email || "Nenhum"}</strong></p>
+                <p>Esperado: <strong>{ADMIN_EMAILS.join(', ')}</strong></p>
+            </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Renderização da Página (Usuário Aprovado) ---
   const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
@@ -115,7 +96,7 @@ export default function ImageManager() {
             <AlertCircle className="w-5 h-5"/> Instruções
         </h3>
         <p className="text-sm text-blue-700">
-            Vá no <strong>Google Imagens</strong>, pesquise o produto, clique com o botão direito na foto e escolha <strong>"Copiar Endereço da Imagem"</strong>. Cole no campo abaixo e clique no botão verde.
+            Copie o endereço da imagem e cole abaixo.
         </p>
       </div>
 
@@ -150,9 +131,6 @@ export default function ImageManager() {
                     <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-gray-800 text-sm truncate">{product.name}</h3>
                         <p className="text-xs text-gray-500 mt-1">{product.barcode || 'Sem código'}</p>
-                        <span className="inline-block bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded mt-1">
-                            {product.department}
-                        </span>
                     </div>
                 </div>
 
@@ -161,7 +139,7 @@ export default function ImageManager() {
                     <LinkIcon className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
                     <input 
                     type="text" 
-                    placeholder="Cole o link da imagem aqui..."
+                    placeholder="Cole o link..."
                     defaultValue={product.image_url || ''}
                     id={`input-${product.id}`}
                     className="w-full pl-9 p-2 text-sm bg-gray-50 rounded border border-gray-200 focus:border-blue-500 outline-none transition"
