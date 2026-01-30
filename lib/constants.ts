@@ -2,18 +2,21 @@
 
 export const LOJA_CONFIG = {
   nome: "Supermercado Família",
-  whatsapp: "5569992557719", // Seu número aqui
+  whatsapp: "5569992557719", 
   valorMinimo: 30.00,
   horarios: {
-    domingo: { abre: 7, fecha: 11 },
+    domingo: { abre: 7, fecha: 13 }, // Ajuste se necessário
     semana: { abre: 7, fecha: 19 }, // Segunda a Sábado
   },
   enderecoFicticio: "Rua do Comércio, 123 - Centro"
 };
 
-// Função auxiliar para verificar se está aberto
+// Função auxiliar para verificar se está aberto (Fuso Horário RONDÔNIA)
 export function isLojaAberta(): boolean {
-  const now = new Date();
+  // Cria uma data baseada no fuso de Porto Velho
+  const timeZone = "America/Porto_Velho";
+  const now = new Date(new Date().toLocaleString("en-US", { timeZone }));
+  
   const day = now.getDay(); // 0 = Domingo
   const hour = now.getHours();
 

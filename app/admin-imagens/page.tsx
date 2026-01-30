@@ -2,13 +2,31 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Search, Save, Link as LinkIcon, AlertCircle } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext'; // Importando contexto de Auth
+import { Search, Save, Link as LinkIcon, AlertCircle, Lock } from 'lucide-react';
+
+// 🔒 LISTA DE E-MAILS PERMITIDOS (Coloque o seu aqui)
+const ADMIN_EMAILS = ['seuemail@gmail.com', 'outroadmin@loja.com'];
 
 export default function ImageManager() {
+  const { user } = useAuth(); // Pega o usuário logado
   const [products, setProducts] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   
+  // 🔒 BLOQUEIO DE SEGURANÇA
+  if (!user || !user.email || !ADMIN_EMAILS.includes(user.email)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen text-center p-6 bg-gray-50">
+        <div className="bg-red-100 p-4 rounded-full mb-4">
+            <Lock className="w-8 h-8 text-red-600" />
+        </div>
+        <h1 className="text-2xl font-bold text-gray-800">Acesso Negado</h1>
+        <p className="text-gray-600 mt-2">Esta área é restrita aos administradores.</p>
+      </div>
+    );
+  }
+
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -42,7 +60,12 @@ export default function ImageManager() {
 
   return (
     <div className="p-6 pb-24 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-blue-900 mb-6">Gerenciador de Imagens</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-blue-900">Gerenciador de Imagens</h1>
+        <span className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full border border-blue-200">
+            Logado como: {user.email}
+        </span>
+      </div>
       
       <div className="bg-blue-50 p-6 rounded-xl mb-8 border border-blue-100">
         <h3 className="font-bold text-blue-800 flex items-center gap-2 mb-2">
@@ -53,7 +76,7 @@ export default function ImageManager() {
         </p>
       </div>
 
-      <div className="sticky top-0 bg-white pt-4 pb-4 z-10">
+      <div className="sticky top-0 bg-white pt-4 pb-4 z-10 shadow-sm mb-4 -mx-6 px-6">
         <div className="relative w-full">
             <Search className="absolute left-3 top-3.5 text-gray-400 w-5 h-5" />
             <input 
@@ -74,7 +97,7 @@ export default function ImageManager() {
             <div key={product.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-3">
                 <div className="flex gap-4">
                     {/* Preview da Imagem */}
-                    <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden border border-gray-200">
+                    <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden border border-gray-200 relative">
                         {product.image_url ? (
                             <img src={product.image_url} className="w-full h-full object-cover" />
                         ) : (
@@ -84,7 +107,7 @@ export default function ImageManager() {
                     
                     <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-gray-800 text-sm truncate">{product.name}</h3>
-                        <p className="text-xs text-gray-500 mt-1">{product.barcode}</p>
+                        <p className="text-xs text-gray-500 mt-1">{product.barcode || 'Sem código'}</p>
                         <span className="inline-block bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded mt-1">
                             {product.department}
                         </span>

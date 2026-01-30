@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { calculateShipping } from '@/lib/shipping';
 import { LOJA_CONFIG, isLojaAberta } from '@/lib/constants'; 
-import { MapPin, CreditCard, Send, ArrowLeft, Truck, AlertTriangle, Clock, AlertCircle } from 'lucide-react';
+import { MapPin, CreditCard, Send, ArrowLeft, Truck, AlertCircle, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -16,17 +16,25 @@ export default function CheckoutPage() {
   const router = useRouter();
   
   const [addresses, setAddresses] = useState<any[]>([]);
+  const [bairrosGratis, setBairrosGratis] = useState<string[]>([]); // Estado para os bairros
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState('PIX');
   const [loading, setLoading] = useState(true);
-  const [isSending, setIsSending] = useState(false); // Estado para evitar duplo clique
+  const [isSending, setIsSending] = useState(false);
   
   const [isDeliveryOpen, setIsDeliveryOpen] = useState(false);
 
   useEffect(() => {
     setIsDeliveryOpen(isLojaAberta());
 
-    async function fetchUserData() {
+    async function fetchData() {
+      // 1. Busca Bairros Grátis do Banco
+      const { data: dataBairros } = await supabase.from('bairros_frete_gratis').select('nome');
+      if (dataBairros) {
+        setBairrosGratis(dataBairros.map(b => b.nome));
+      }
+
+      // 2. Busca Endereços do Usuário
       if (user) {
         const { data } = await supabase.from('addresses').select('*').eq('user_id', user.id);
         if (data && data.length > 0) {
@@ -36,13 +44,14 @@ export default function CheckoutPage() {
       }
       setLoading(false);
     }
-    fetchUserData();
+    fetchData();
   }, [user]);
 
   const selectedAddress = addresses.find(a => a.id === selectedAddressId);
   
+  // Passamos a lista do banco para a função de cálculo
   const shippingInfo = selectedAddress 
-    ? calculateShipping(selectedAddress.district) 
+    ? calculateShipping(selectedAddress.district, bairrosGratis) 
     : { price: 0, label: 'A calcular' };
 
   const finalTotal = cartTotal + shippingInfo.price;
@@ -67,7 +76,7 @@ export default function CheckoutPage() {
     const loadingToast = toast.loading("Salvando pedido...");
 
     try {
-      // 1. SALVAR NO SUPABASE (TABELA ORDERS)
+      // 1. SALVAR PEDIDO
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -75,14 +84,14 @@ export default function CheckoutPage() {
           total: finalTotal,
           payment_method: paymentMethod,
           status: 'pendente',
-          address_snapshot: selectedAddress // Salva o endereço fixo no JSON
+          address_snapshot: selectedAddress
         })
         .select()
         .single();
 
       if (orderError) throw orderError;
 
-      // 2. SALVAR ITENS (TABELA ORDER_ITEMS)
+      // 2. SALVAR ITENS
       const orderItems = items.map(item => ({
         order_id: orderData.id,
         product_id: item.id,
@@ -98,7 +107,7 @@ export default function CheckoutPage() {
 
       if (itemsError) throw itemsError;
 
-      // 3. MONTAR MENSAGEM WHATSAPP (Agora com ID do Pedido)
+      // 3. WHATSAPP
       const userName = user?.user_metadata?.full_name || "Cliente";
       const now = new Date();
       
@@ -134,12 +143,12 @@ export default function CheckoutPage() {
       
       clearCart();
       window.open(url, '_blank');
-      router.push('/meus-pedidos'); // Redireciona para a nova página
+      router.push('/meus-pedidos');
 
     } catch (error) {
       console.error(error);
       toast.dismiss(loadingToast);
-      toast.error("Erro ao salvar pedido. Tente novamente.");
+      toast.error("Erro ao salvar pedido.");
       setIsSending(false);
     }
   };
@@ -168,7 +177,7 @@ export default function CheckoutPage() {
       </div>
 
       <div className="p-4 -mt-8 relative z-20 space-y-4">
-        {/* Lógica de Alertas (Mínimo, Fechado) igual ao anterior... */}
+        
         {!isMinimumMet && (
            <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl flex items-start gap-3">
               <AlertCircle className="w-6 h-6 text-orange-500 shrink-0" />
@@ -239,7 +248,6 @@ export default function CheckoutPage() {
         </div>
 
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-2">
-             {/* Resumo de valores (igual ao anterior) */}
              <div className="flex justify-between text-sm text-gray-600">
                 <span>Subtotal</span>
                 <span>R$ {cartTotal.toFixed(2).replace('.', ',')}</span>
@@ -250,6 +258,11 @@ export default function CheckoutPage() {
                     {shippingInfo.price === 0 ? 'GRÁTIS' : `R$ ${shippingInfo.price.toFixed(2).replace('.', ',')}`}
                  </span>
             </div>
+            {shippingInfo.price === 0 && (
+                <div className="text-xs text-green-600 text-right">
+                    (Região atendida com Frete Grátis)
+                </div>
+            )}
             <div className="border-t border-gray-100 pt-3 mt-2 flex justify-between items-center">
                 <span className="font-bold text-lg text-blue-900">Total Final</span>
                 <span className="font-bold text-xl text-blue-900">R$ {finalTotal.toFixed(2).replace('.', ',')}</span>
