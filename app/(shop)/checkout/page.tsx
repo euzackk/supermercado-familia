@@ -31,7 +31,8 @@ export default function CheckoutPage() {
       // 1. Busca Bairros Grátis do Banco
       const { data: dataBairros } = await supabase.from('bairros_frete_gratis').select('nome');
       if (dataBairros) {
-        setBairrosGratis(dataBairros.map(b => b.nome));
+        // CORREÇÃO DO ERRO (b: any) AQUI EMBAIXO:
+        setBairrosGratis(dataBairros.map((b: any) => b.nome));
       }
 
       // 2. Busca Endereços do Usuário
@@ -209,7 +210,7 @@ export default function CheckoutPage() {
                                 : 'border-gray-100 hover:border-orange-200'
                             }`}
                         >
-                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${selectedAddressId === addr.id ? 'border-orange-500' : 'border-gray-300'}`}>
+                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${selectedAddressId === addr.id ? 'border-orange-500' : 'border-gray-300'}`}>
                                 {selectedAddressId === addr.id && <div className="w-2 h-2 bg-orange-500 rounded-full"/>}
                             </div>
                             <div className="flex-1 min-w-0">
