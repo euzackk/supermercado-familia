@@ -7,7 +7,7 @@ import { Search, Save, Link as LinkIcon, AlertCircle, Lock, LogOut } from 'lucid
 import Image from 'next/image';
 
 // ⚠️ IMPORTANTE: Mantenha seu e-mail correto aqui
-const ADMIN_EMAILS = ['seuemail@gmail.com']; 
+const ADMIN_EMAILS = ['isaacmelo592@gmail.com']; 
 
 export default function ImageManager() {
   const { user, loading: authLoading, signOut } = useAuth();
