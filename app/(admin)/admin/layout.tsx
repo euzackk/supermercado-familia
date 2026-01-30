@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
 // ⚠️ IMPORTANTE: COLOQUE SEU E-MAIL AQUI
-const ADMIN_EMAILS = ['seuemail@gmail.com'];
+const ADMIN_EMAILS = ['isaacmelo592@gmail.com'];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, signOut } = useAuth();
