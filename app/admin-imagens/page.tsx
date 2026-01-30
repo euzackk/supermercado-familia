@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext'; // Importando contexto de Auth
 import { Search, Save, Link as LinkIcon, AlertCircle, Lock } from 'lucide-react';
 
 // 🔒 LISTA DE E-MAILS PERMITIDOS (Coloque o seu aqui)
-const ADMIN_EMAILS = ['seuemail@gmail.com', 'outroadmin@loja.com'];
+const ADMIN_EMAILS = ['isaacmelo592@gmail.com', 'outroadmin@loja.com'];
 
 export default function ImageManager() {
   const { user } = useAuth(); // Pega o usuário logado
