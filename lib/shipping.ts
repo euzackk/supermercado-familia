@@ -20,7 +20,7 @@ export function calculateShipping(bairro: string, bairrosGratisDB?: string[]): S
 
   const bairroFormatado = bairro.toUpperCase().trim();
   
-  // Decide qual lista usar: a do banco (se existir) ou a de backup
+  // Decide qual lista usar: a do banco (se existir e tiver itens) ou a de backup
   const listaVerificacao = bairrosGratisDB && bairrosGratisDB.length > 0 
     ? bairrosGratisDB 
     : ZONA_3_BAIRROS_BACKUP;

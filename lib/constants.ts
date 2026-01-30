@@ -5,7 +5,7 @@ export const LOJA_CONFIG = {
   whatsapp: "5569992557719", 
   valorMinimo: 30.00,
   horarios: {
-    domingo: { abre: 7, fecha: 13 }, // Ajuste se necessário
+    domingo: { abre: 7, fecha: 13 }, // Ajustei para 13h conforme seu layout.tsx
     semana: { abre: 7, fecha: 19 }, // Segunda a Sábado
   },
   enderecoFicticio: "Rua do Comércio, 123 - Centro"

@@ -3,19 +3,20 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
-import { Search, Save, Link as LinkIcon, AlertCircle, Lock, Bug } from 'lucide-react';
+import { Search, Save, Link as LinkIcon, AlertCircle, Lock, LogOut } from 'lucide-react';
+import Image from 'next/image';
 
-// ⚠️ SEU EMAIL AQUI
-const ADMIN_EMAILS = ['isaacmelo592@gmail.com']; 
+// ⚠️ IMPORTANTE: Mantenha seu e-mail correto aqui
+const ADMIN_EMAILS = ['seuemail@gmail.com']; 
 
 export default function ImageManager() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const [products, setProducts] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // --- CORREÇÃO: Hooks e Funções SEMPRE no topo, antes de qualquer return ---
-  
+  // --- FUNÇÕES (Hooks sempre no topo) ---
+
   async function fetchProducts() {
     setLoading(true);
     const { data } = await supabase
@@ -34,131 +35,146 @@ export default function ImageManager() {
       .eq('id', id);
 
     if (!error) {
-      alert("Imagem Salva com Sucesso!");
-      fetchProducts(); 
+      // Feedback visual simples
+      const btn = document.getElementById(`btn-${id}`);
+      if(btn) {
+         btn.innerText = "Salvo!";
+         btn.classList.add("bg-green-800");
+         setTimeout(() => {
+            btn.innerText = "";
+            btn.classList.remove("bg-green-800");
+            // Adiciona ícone de volta se necessário, ou apenas reseta
+            fetchProducts(); 
+         }, 1000);
+      } else {
+        fetchProducts();
+      }
     } else {
-      alert("Erro ao salvar a imagem.");
+      alert("Erro ao salvar.");
     }
   }
 
   useEffect(() => {
-    // Só buscamos produtos se o usuário estiver validado
+    // Busca automática se estiver logado e autorizado
     if (!authLoading && user && user.email && ADMIN_EMAILS.includes(user.email)) {
         fetchProducts();
     }
-  }, [authLoading, user]); // Array de dependências correto
+  }, [authLoading, user]);
 
-  // --- AGORA SIM: As verificações condicionais (Returns) ---
+  // --- RENDERIZAÇÃO CONDICIONAL (Agora pode usar return) ---
 
   if (authLoading) {
-    return <div className="flex h-screen items-center justify-center">Verificando usuário...</div>;
+    return <div className="flex h-screen items-center justify-center text-gray-500">Carregando acesso...</div>;
   }
   
-  // Bloqueio de Segurança
+  // Bloqueio de Segurança (Tela Limpa)
   if (!user || !user.email || !ADMIN_EMAILS.includes(user.email)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen text-center p-6 bg-gray-50">
-        <div className="bg-red-100 p-4 rounded-full mb-4">
+        <div className="bg-red-100 p-4 rounded-full mb-4 shadow-sm">
             <Lock className="w-8 h-8 text-red-600" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-800">Acesso Negado</h1>
-        
-        {/* Diagnóstico (Pode remover depois) */}
-        <div className="mt-6 bg-white p-6 rounded-xl border border-gray-200 shadow-sm max-w-md w-full text-left">
-            <h3 className="flex items-center gap-2 font-bold text-gray-800 mb-4 border-b pb-2">
-                <Bug className="w-4 h-4 text-orange-500"/> Diagnóstico
-            </h3>
-            <div className="space-y-3 text-sm">
-                <p>Status: <span className={user ? "text-green-600" : "text-red-600"}>{user ? "Logado" : "Não Logado"}</span></p>
-                <p>Seu Email: <strong>{user?.email || "Nenhum"}</strong></p>
-                <p>Esperado: <strong>{ADMIN_EMAILS.join(', ')}</strong></p>
-            </div>
-        </div>
+        <h1 className="text-2xl font-bold text-gray-800">Área Restrita</h1>
+        <p className="text-gray-500 mt-2 max-w-md">
+            Você precisa estar logado com uma conta de administrador para acessar esta página.
+        </p>
+        <button 
+            onClick={signOut}
+            className="mt-6 text-sm text-red-600 underline hover:text-red-800"
+        >
+            Sair e tentar outra conta
+        </button>
       </div>
     );
   }
 
-  // --- Renderização da Página (Usuário Aprovado) ---
+  // --- ÁREA DO ADMIN ---
   const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="p-6 pb-24 max-w-4xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-blue-900">Gerenciador de Imagens</h1>
-        <div className="flex flex-col items-end">
-             <span className="text-xs text-gray-500">Logado como:</span>
-             <span className="text-sm font-bold text-blue-800">{user.email}</span>
-        </div>
-      </div>
-      
-      <div className="bg-blue-50 p-6 rounded-xl mb-8 border border-blue-100">
-        <h3 className="font-bold text-blue-800 flex items-center gap-2 mb-2">
-            <AlertCircle className="w-5 h-5"/> Instruções
-        </h3>
-        <p className="text-sm text-blue-700">
-            Copie o endereço da imagem e cole abaixo.
-        </p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
+          <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 className="text-2xl font-bold text-blue-900 flex items-center gap-2">
+                    Gerenciador de Imagens
+                    <span className="text-xs font-normal bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Admin</span>
+                </h1>
+                <p className="text-xs text-gray-400 mt-0.5">Logado como {user.email}</p>
+            </div>
+
+            <div className="relative w-full md:w-96">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input 
+                    type="text" 
+                    placeholder="Buscar produto..." 
+                    className="w-full pl-9 p-2.5 rounded-lg border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                />
+            </div>
+          </div>
       </div>
 
-      <div className="sticky top-0 bg-white pt-4 pb-4 z-10 shadow-sm mb-4 -mx-6 px-6">
-        <div className="relative w-full">
-            <Search className="absolute left-3 top-3.5 text-gray-400 w-5 h-5" />
-            <input 
-            type="text" 
-            placeholder="Buscar produto por nome..." 
-            className="w-full pl-10 p-3 rounded-lg border border-gray-200 shadow-sm focus:ring-2 focus:ring-blue-200 outline-none"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            />
-        </div>
-      </div>
-
-      {loading ? (
-          <div className="text-center py-10 text-gray-500">Carregando produtos...</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filtered.slice(0, 50).map(product => (
-            <div key={product.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-3">
-                <div className="flex gap-4">
-                    <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden border border-gray-200 relative">
+      <div className="max-w-6xl mx-auto p-4 pb-24">
+        {loading ? (
+            <div className="text-center py-20 text-gray-400 flex flex-col items-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
+                Carregando catálogo...
+            </div>
+        ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filtered.slice(0, 50).map(product => (
+                <div key={product.id} className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex gap-3 group hover:border-blue-200 transition">
+                    {/* Preview da Imagem */}
+                    <div className="w-20 h-20 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden border border-gray-200 relative">
                         {product.image_url ? (
-                            <img src={product.image_url} className="w-full h-full object-cover" />
+                            <img src={product.image_url} className="w-full h-full object-cover" alt="" />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs text-center p-1">Sem Foto</div>
+                            <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 text-[10px] text-center p-1">
+                                <AlertCircle className="w-5 h-5 mb-1 opacity-50"/> Sem Foto
+                            </div>
                         )}
                     </div>
                     
-                    <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-gray-800 text-sm truncate">{product.name}</h3>
-                        <p className="text-xs text-gray-500 mt-1">{product.barcode || 'Sem código'}</p>
+                    <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                        <div>
+                            <h3 className="font-bold text-gray-800 text-sm leading-tight line-clamp-2" title={product.name}>
+                                {product.name}
+                            </h3>
+                            <p className="text-[10px] text-gray-400 mt-1 font-mono">
+                                {product.barcode || 'Sem EAN'}
+                            </p>
+                        </div>
+
+                        <div className="flex gap-2 mt-2">
+                            <div className="relative flex-1">
+                                <LinkIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                                <input 
+                                    type="text" 
+                                    placeholder="URL da imagem..."
+                                    defaultValue={product.image_url || ''}
+                                    id={`input-${product.id}`}
+                                    className="w-full pl-8 pr-2 py-1.5 text-xs bg-gray-50 rounded border border-gray-200 focus:border-blue-500 focus:bg-white outline-none transition"
+                                />
+                            </div>
+                            <button 
+                                id={`btn-${product.id}`}
+                                onClick={() => {
+                                    const input = document.getElementById(`input-${product.id}`) as HTMLInputElement;
+                                    updateImage(product.id, input.value);
+                                }}
+                                className="bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-blue-700 shadow-sm active:scale-95 transition flex items-center justify-center min-w-[3rem]"
+                            >
+                                <Save className="w-4 h-4" />
+                            </button>
+                        </div>
                     </div>
                 </div>
-
-                <div className="flex gap-2 pt-2 border-t border-gray-50">
-                <div className="relative flex-1">
-                    <LinkIcon className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-                    <input 
-                    type="text" 
-                    placeholder="Cole o link..."
-                    defaultValue={product.image_url || ''}
-                    id={`input-${product.id}`}
-                    className="w-full pl-9 p-2 text-sm bg-gray-50 rounded border border-gray-200 focus:border-blue-500 outline-none transition"
-                    />
-                </div>
-                <button 
-                    onClick={() => {
-                        const input = document.getElementById(`input-${product.id}`) as HTMLInputElement;
-                        updateImage(product.id, input.value);
-                    }}
-                    className="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 shadow-sm active:scale-95 transition"
-                >
-                    <Save className="w-5 h-5" />
-                </button>
-                </div>
+                ))}
             </div>
-            ))}
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

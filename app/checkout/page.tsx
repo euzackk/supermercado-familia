@@ -76,7 +76,7 @@ export default function CheckoutPage() {
     const loadingToast = toast.loading("Salvando pedido...");
 
     try {
-      // 1. SALVAR PEDIDO
+      // 1. SALVAR PEDIDO NO SUPABASE
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -91,7 +91,7 @@ export default function CheckoutPage() {
 
       if (orderError) throw orderError;
 
-      // 2. SALVAR ITENS
+      // 2. SALVAR ITENS DO PEDIDO
       const orderItems = items.map(item => ({
         order_id: orderData.id,
         product_id: item.id,
@@ -107,7 +107,7 @@ export default function CheckoutPage() {
 
       if (itemsError) throw itemsError;
 
-      // 3. WHATSAPP
+      // 3. WHATSAPP (Mensagem Formatada)
       const userName = user?.user_metadata?.full_name || "Cliente";
       const now = new Date();
       
